@@ -192,3 +192,97 @@ export const getDateRange = (range: 'este-mes' | 'ultimos-3-meses' | 'este-ano')
   };
 };
 
+// Date range utilities for preset filters
+export interface DateRange {
+  from?: Date;
+  to?: Date;
+}
+
+// Helper to normalize date to start of day (00:00:00.000)
+const startOfDay = (date: Date): Date => {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+};
+
+// Helper to normalize date to end of day (23:59:59.999)
+const endOfDay = (date: Date): Date => {
+  const normalized = new Date(date);
+  normalized.setHours(23, 59, 59, 999);
+  return normalized;
+};
+
+// Compare two dates by year, month, and day only (ignoring time)
+const isSameDay = (date1: Date | undefined, date2: Date | undefined): boolean => {
+  if (!date1 && !date2) return true;
+  if (!date1 || !date2) return false;
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+};
+
+export const getCurrentMonthRange = (): DateRange => {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  return {
+    from: startOfDay(firstDay),
+    to: endOfDay(lastDay),
+  };
+};
+
+export const getLastMonthRange = (): DateRange => {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
+  return {
+    from: startOfDay(firstDay),
+    to: endOfDay(lastDay),
+  };
+};
+
+export const getLast3MonthsRange = (): DateRange => {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+  return {
+    from: startOfDay(firstDay),
+    to: endOfDay(today),
+  };
+};
+
+export const getCurrentBimestreRange = (): DateRange => {
+  const today = new Date();
+  const currentBimestre = Math.floor(today.getMonth() / 2);
+  const firstDay = new Date(today.getFullYear(), currentBimestre * 2, 1);
+  const lastDay = new Date(today.getFullYear(), (currentBimestre + 1) * 2, 0);
+  return {
+    from: startOfDay(firstDay),
+    to: endOfDay(lastDay),
+  };
+};
+
+export const areDateRangesEqual = (range1: DateRange | undefined | null, range2: DateRange | undefined | null): boolean => {
+  if (!range1 && !range2) return true;
+  if (!range1 || !range2) return false;
+  
+  return isSameDay(range1.from, range2.from) && isSameDay(range1.to, range2.to);
+};
+
+// Currency formatting utilities (for input)
+export const formatCurrencyForInput = (value: number): string => {
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+export const parseCurrencyFromBrazilian = (value: string): number => {
+  // Remove all non-digit characters except comma
+  const cleaned = value.replace(/[^\d,]/g, '');
+  // Replace comma with dot for parsing
+  const normalized = cleaned.replace(',', '.');
+  return parseFloat(normalized) || 0;
+};
+

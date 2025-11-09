@@ -102,7 +102,14 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+    <Modal 
+      visible={visible} 
+      transparent 
+      animationType="slide" 
+      onRequestClose={handleClose}
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+    >
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
@@ -203,7 +210,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
               render={({ field: { onChange, value } }) => (
                 <CategoryPicker
                   categories={categories}
-                  selectedId={value}
+                  selectedId={value || null}
                   onSelect={(id) => onChange(id)}
                 />
               )}
@@ -235,6 +242,8 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },

@@ -74,7 +74,14 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
   if (!boleto) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+    <Modal 
+      visible={visible} 
+      transparent 
+      animationType="slide" 
+      onRequestClose={handleClose}
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+    >
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
@@ -143,6 +150,8 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },

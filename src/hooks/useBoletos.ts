@@ -178,7 +178,16 @@ export const useBoletos = (filters?: BoletoFilters) => {
         },
       });
     },
-    updateBoleto: updateMutation.mutate,
+    updateBoleto: (data: { id: number; data: UpdateBoletoRequest }, options?: { onSuccess?: (data: Boleto) => void; onError?: (error: any) => void }) => {
+      updateMutation.mutate(data, {
+        onSuccess: (result) => {
+          options?.onSuccess?.(result);
+        },
+        onError: (error) => {
+          options?.onError?.(error);
+        },
+      });
+    },
     deleteBoleto: deleteMutation.mutate,
     scanBoleto: (imageUri: string, options?: { onSuccess?: (data: Boleto) => void; onError?: (error: any) => void }) => {
       scanMutation.mutate(imageUri, {
