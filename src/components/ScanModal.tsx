@@ -12,6 +12,7 @@ import { X } from 'lucide-react-native';
 import { format, parse } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CategoryPicker from './CategoryPicker';
+import { useModalStore } from '@/store/modalStore';
 
 const scanSchema = z.object({
   fornecedor: z.string().min(1, 'Fornecedor é obrigatório'),
@@ -37,8 +38,13 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
   const { t } = useTranslation();
   const { createBoleto } = useBoletos();
   const { categories } = useCategories();
+  const { setModalOpen } = useModalStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  useEffect(() => {
+    setModalOpen(visible);
+  }, [visible, setModalOpen]);
 
   const {
     control,

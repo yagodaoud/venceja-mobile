@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '@/store/authStore';
+import { useModalStore } from '@/store/modalStore';
 import LoginScreen from '@/screens/LoginScreen';
 import DashboardScreen from '@/screens/DashboardScreen';
 import ScanScreen from '@/screens/ScanScreen';
@@ -16,16 +17,20 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const { isAnyModalOpen } = useModalStore();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#4CAF50',
         tabBarInactiveTintColor: '#757575',
-        tabBarStyle: {
-          paddingBottom: Platform.OS === 'ios' ? 20 : 5,
-          height: Platform.OS === 'ios' ? 85 : 60,
-        },
+        tabBarStyle: isAnyModalOpen
+          ? { display: 'none' }
+          : {
+            paddingBottom: Platform.OS === 'ios' ? 20 : 5,
+            height: Platform.OS === 'ios' ? 85 : 60,
+          },
       }}
     >
       <Tab.Screen

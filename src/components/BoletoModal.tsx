@@ -9,6 +9,7 @@ import { formatCurrencyForInput, parseCurrencyFromBrazilian, formatDate, parseDa
 import { format } from 'date-fns';
 import Toast from 'react-native-toast-message';
 import CategoryPicker from './CategoryPicker';
+import { useModalStore } from '@/store/modalStore';
 
 interface BoletoModalProps {
   boleto?: Boleto | null;
@@ -27,8 +28,13 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
 
   const { createBoleto, updateBoleto } = useBoletos();
   const { categories } = useCategories();
+  const { setModalOpen } = useModalStore();
 
   const isEditMode = !!boleto;
+
+  useEffect(() => {
+    setModalOpen(isOpen);
+  }, [isOpen, setModalOpen]);
 
   // Reset form when modal opens/closes or boleto changes
   useEffect(() => {

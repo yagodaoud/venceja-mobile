@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { X, Camera, FileText } from 'lucide-react-native';
+import { useModalStore } from '@/store/modalStore';
 
 interface AddBoletoModalProps {
   visible: boolean;
@@ -10,6 +11,12 @@ interface AddBoletoModalProps {
 }
 
 export default function AddBoletoModal({ visible, onClose, onScan, onCreateManual }: AddBoletoModalProps) {
+  const { setModalOpen } = useModalStore();
+
+  useEffect(() => {
+    setModalOpen(visible);
+  }, [visible, setModalOpen]);
+
   return (
     <Modal
       visible={visible}

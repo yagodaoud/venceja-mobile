@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon, X } from 'lucide-react-native';
 import { Button } from 'react-native-paper';
+import { useModalStore } from '@/store/modalStore';
 
 interface PaymentModalProps {
   visible: boolean;
@@ -16,7 +17,12 @@ interface PaymentModalProps {
 export default function PaymentModal({ visible, boleto, onClose }: PaymentModalProps) {
   const { t } = useTranslation();
   const { markPaid, isMarkingPaid } = useBoletos();
+  const { setModalOpen } = useModalStore();
   const [comprovanteUri, setComprovanteUri] = useState<string | null>(null);
+
+  useEffect(() => {
+    setModalOpen(visible);
+  }, [visible, setModalOpen]);
 
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
