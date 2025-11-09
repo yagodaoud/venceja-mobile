@@ -11,7 +11,7 @@ const resources = {
       enter: 'Entrar',
       invalidCredentials: 'Credenciais inválidas',
       loggingIn: 'Entrando...',
-      
+
       // Dashboard
       dashboard: 'Dashboard',
       boletos: 'Boletos',
@@ -30,7 +30,7 @@ const resources = {
       expiringIn3Days: 'Vence nos próximos 3 dias',
       pullToRefresh: 'Puxe para atualizar',
       offlineMode: 'Modo offline – dados em cache',
-      
+
       // Scan
       scan: 'Escanear',
       scanBoleto: 'Escanear Boleto',
@@ -42,7 +42,7 @@ const resources = {
       editScanData: 'Editar Dados Escaneados',
       save: 'Salvar',
       cancel: 'Cancelar',
-      
+
       // Payment
       markAsPaid: 'Marcar como Pago',
       markAsUnpaid: 'Marcar como Não Pago',
@@ -51,7 +51,7 @@ const resources = {
       noReceipt: 'Sem comprovante',
       paymentSuccess: 'Pagamento registrado com sucesso',
       paymentError: 'Erro ao registrar pagamento',
-      
+
       // Categories
       categories: 'Categorias',
       category: 'Categoria',
@@ -66,7 +66,7 @@ const resources = {
       categoryDeleted: 'Categoria excluída com sucesso',
       confirmDelete: 'Confirmar Exclusão',
       confirmDeleteMessage: 'Tem certeza que deseja excluir esta categoria?',
-      
+
       // Reports
       reports: 'Relatórios',
       totalPaid: 'Total Pago',
@@ -78,7 +78,7 @@ const resources = {
       thisMonth: 'Este Mês',
       last3Months: 'Últimos 3 Meses',
       thisYear: 'Este Ano',
-      
+
       // Settings
       settings: 'Configurações',
       changePassword: 'Alterar Senha',
@@ -90,7 +90,7 @@ const resources = {
       logout: 'Sair',
       passwordUpdated: 'Senha atualizada com sucesso',
       cnpjUpdated: 'CNPJ atualizado com sucesso',
-      
+
       // Common
       edit: 'Editar',
       delete: 'Excluir',
@@ -113,14 +113,14 @@ const resources = {
       futureDateRequired: 'Data deve ser futura',
       barcode: 'Código de Barras',
       optional: 'Opcional',
-      
+
       // Validation
       requiredField: 'Este campo é obrigatório',
       minValue: 'Valor deve ser maior que zero',
       invalidEmail: 'E-mail inválido',
       passwordTooShort: 'Senha deve ter pelo menos 6 caracteres',
       passwordsDoNotMatch: 'Senhas não coincidem',
-      
+
       // TODO: Future features
       // biometrics: 'Biometria',
       // barcodeScanner: 'Scanner de Código de Barras',
@@ -135,6 +135,7 @@ i18n
     resources,
     lng: 'pt',
     fallbackLng: 'pt',
+    compatibilityJSON: 'v3',
     interpolation: {
       escapeValue: false,
     },

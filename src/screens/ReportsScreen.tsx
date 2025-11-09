@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency, getDateRange } from '@/lib/utils';
 import { PieChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
-import { Share } from 'react-native-share';
 import { Calendar, Download } from 'lucide-react-native';
 import { BoletoStatus } from '@/types';
 import { calculateStatus } from '@/lib/utils';
@@ -69,13 +67,12 @@ export default function ReportsScreen() {
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
 
     try {
-      await Share.open({
-        title: 'Exportar CSV',
+      await Share.share({
         message: csv,
-        type: 'text/csv',
+        title: 'Exportar CSV',
       });
     } catch (error) {
-      // User cancelled
+      // User cancelled or error occurred
     }
   };
 

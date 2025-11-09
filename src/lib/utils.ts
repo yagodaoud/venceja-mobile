@@ -1,4 +1,4 @@
-import { format, parse, isAfter, addDays, isBefore, isWithinInterval } from 'date-fns';
+import { format, parse, isAfter, addDays, isBefore, isWithinInterval, isValid as isValidDateFns } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Boleto, BoletoStatus } from '@/types';
 
@@ -10,39 +10,98 @@ export const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
+// Helper function to parse date from various formats (ISO or DD/MM/YYYY)
+const parseDateString = (dateString: string | Date): Date => {
+  // Check if it's already a Date object
+  if (dateString instanceof Date) {
+    return dateString;
+  }
+  
+  // Check if it's an ISO format (contains T, Z, or matches YYYY-MM-DD pattern)
+  if (dateString.includes('T') || dateString.includes('Z') || /^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+    const isoDate = new Date(dateString);
+    if (!isNaN(isoDate.getTime())) {
+      return isoDate;
+    }
+  }
+  
+  // Try parsing as DD/MM/YYYY format (most common format from API)
+  // Check if it matches DD/MM/YYYY pattern (with or without time)
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(dateString)) {
+    // Extract just the date part if there's a time component
+    const datePart = dateString.split(' ')[0];
+    const parsedDate = parse(datePart, 'dd/MM/yyyy', new Date());
+    if (isValidDateFns(parsedDate)) {
+      return parsedDate;
+    }
+  }
+  
+  // Fallback: try parsing as ISO date
+  const fallbackDate = new Date(dateString);
+  if (!isNaN(fallbackDate.getTime())) {
+    return fallbackDate;
+  }
+  
+  // Last resort: return current date if parsing fails completely
+  console.warn(`Failed to parse date: ${dateString}`);
+  return new Date();
+};
+
 // Date formatting (DD/MM/YYYY)
 export const formatDate = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return format(dateObj, 'dd/MM/yyyy', { locale: ptBR });
+  try {
+    const dateObj = typeof date === 'string' ? parseDateString(date) : date;
+    if (!isValidDateFns(dateObj)) {
+      return date as string; // Return original string if invalid
+    }
+    return format(dateObj, 'dd/MM/yyyy', { locale: ptBR });
+  } catch (error) {
+    // If parsing fails, return the original string
+    return typeof date === 'string' ? date : format(date, 'dd/MM/yyyy', { locale: ptBR });
+  }
 };
 
 // Parse date from DD/MM/YYYY
 export const parseDate = (dateString: string): Date => {
-  return parse(dateString, 'dd/MM/yyyy', new Date());
+  return parseDateString(dateString);
 };
 
 // Check if boleto is expired (VENCIDO)
 export const isBoletoVencido = (vencimento: string): boolean => {
-  const vencimentoDate = new Date(vencimento);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  vencimentoDate.setHours(0, 0, 0, 0);
-  return isBefore(vencimentoDate, today);
+  try {
+    const vencimentoDate = parseDateString(vencimento);
+    if (!isValidDateFns(vencimentoDate)) {
+      return false; // If date is invalid, don't consider it expired
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    vencimentoDate.setHours(0, 0, 0, 0);
+    return isBefore(vencimentoDate, today);
+  } catch (error) {
+    return false; // If parsing fails, don't consider it expired
+  }
 };
 
 // Check if boleto is expiring in 3 days
 export const isBoletoExpiringSoon = (vencimento: string): boolean => {
-  const vencimentoDate = new Date(vencimento);
-  const today = new Date();
-  const threeDaysFromNow = addDays(today, 3);
-  today.setHours(0, 0, 0, 0);
-  vencimentoDate.setHours(0, 0, 0, 0);
-  threeDaysFromNow.setHours(23, 59, 59, 999);
-  
-  return (
-    isWithinInterval(vencimentoDate, { start: today, end: threeDaysFromNow }) ||
-    isBefore(vencimentoDate, threeDaysFromNow) && !isBefore(vencimentoDate, today)
-  );
+  try {
+    const vencimentoDate = parseDateString(vencimento);
+    if (!isValidDateFns(vencimentoDate)) {
+      return false; // If date is invalid, don't consider it expiring soon
+    }
+    const today = new Date();
+    const threeDaysFromNow = addDays(today, 3);
+    today.setHours(0, 0, 0, 0);
+    vencimentoDate.setHours(0, 0, 0, 0);
+    threeDaysFromNow.setHours(23, 59, 59, 999);
+    
+    return (
+      isWithinInterval(vencimentoDate, { start: today, end: threeDaysFromNow }) ||
+      (isBefore(vencimentoDate, threeDaysFromNow) && !isBefore(vencimentoDate, today))
+    );
+  } catch (error) {
+    return false; // If parsing fails, don't consider it expiring soon
+  }
 };
 
 // Calculate status (client-side for offline)
@@ -86,15 +145,22 @@ export const getStatusLabel = (status: BoletoStatus): string => {
 
 // Convert date to DD/MM/YYYY format
 export const toDDMMYYYY = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return format(dateObj, 'dd/MM/yyyy');
+  try {
+    const dateObj = typeof date === 'string' ? parseDateString(date) : date;
+    if (!isValidDateFns(dateObj)) {
+      return typeof date === 'string' ? date : format(date, 'dd/MM/yyyy');
+    }
+    return format(dateObj, 'dd/MM/yyyy');
+  } catch (error) {
+    return typeof date === 'string' ? date : format(date, 'dd/MM/yyyy');
+  }
 };
 
-// Validate date format (DD/MM/YYYY)
+// Validate date format (DD/MM/YYYY or ISO)
 export const isValidDate = (dateString: string): boolean => {
   try {
-    const parsed = parseDate(dateString);
-    return !isNaN(parsed.getTime());
+    const parsed = parseDateString(dateString);
+    return isValidDateFns(parsed);
   } catch {
     return false;
   }

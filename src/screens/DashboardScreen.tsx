@@ -25,7 +25,7 @@ export default function DashboardScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const range = dateRange && dateRange !== 'custom' ? getDateRange(dateRange) : { inicio: '', fim: '' };
-  
+
   const filters = {
     status: statusFilter !== 'ALL' ? statusFilter : undefined,
     dataInicio: range.inicio || undefined,
