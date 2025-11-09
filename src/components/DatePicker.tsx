@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { CalendarIcon, X } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DateRange } from '@/lib/utils';
 import CustomCalendar from './CustomCalendar';
+import { commonStyles, colors, spacing } from '@/styles';
 
 interface DateRangePickerProps {
   dateRange: DateRange | undefined;
@@ -40,23 +41,30 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
     : 'Selecione um período';
 
   return (
-    <View style={styles.container}>
+    <View style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
       <TouchableOpacity
         style={[
-          styles.button,
-          dateRange?.from && styles.buttonWithClear
+          commonStyles.input,
+          { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+          dateRange?.from && { paddingRight: spacing.xxxxl }
         ]}
         onPress={() => setIsOpen(true)}
       >
-        <CalendarIcon size={20} color="#4CAF50" />
-        <Text style={[styles.buttonText, !dateRange?.from && styles.buttonTextPlaceholder]}>
+        <CalendarIcon size={20} color={colors.primary} />
+        <Text style={[
+          { fontSize: spacing.md, flex: 1 },
+          dateRange?.from ? { color: colors.text.secondary } : { color: colors.text.lighter }
+        ]}>
           {displayText}
         </Text>
       </TouchableOpacity>
 
       {dateRange?.from && (
-        <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-          <X size={16} color="#757575" />
+        <TouchableOpacity
+          style={{ position: 'absolute', right: spacing.sm, padding: spacing.xs, zIndex: 1 }}
+          onPress={handleClear}
+        >
+          <X size={16} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
 
@@ -84,23 +92,30 @@ export const SingleDatePicker = ({ date, onDateChange, placeholder = 'Selecione 
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
       <TouchableOpacity
         style={[
-          styles.button,
-          date && styles.buttonWithClear
+          commonStyles.input,
+          { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+          date && { paddingRight: spacing.xxxxl }
         ]}
         onPress={() => setIsOpen(true)}
       >
-        <CalendarIcon size={20} color="#4CAF50" />
-        <Text style={[styles.buttonText, !date && styles.buttonTextPlaceholder]}>
+        <CalendarIcon size={20} color={colors.primary} />
+        <Text style={[
+          { fontSize: spacing.md, flex: 1 },
+          date ? { color: colors.text.secondary } : { color: colors.text.lighter }
+        ]}>
           {date ? formatDate(date) : placeholder}
         </Text>
       </TouchableOpacity>
 
       {date && (
-        <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-          <X size={16} color="#757575" />
+        <TouchableOpacity
+          style={{ position: 'absolute', right: spacing.sm, padding: spacing.xs, zIndex: 1 }}
+          onPress={handleClear}
+        >
+          <X size={16} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
 
@@ -115,40 +130,4 @@ export const SingleDatePicker = ({ date, onDateChange, placeholder = 'Selecione 
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    width: '100%',
-  },
-  buttonWithClear: {
-    paddingRight: 40,
-  },
-  buttonText: {
-    fontSize: 14,
-    color: '#111827',
-    flex: 1,
-  },
-  buttonTextPlaceholder: {
-    color: '#9CA3AF',
-  },
-  clearButton: {
-    position: 'absolute',
-    right: 8,
-    padding: 4,
-    zIndex: 1,
-  },
-});
 

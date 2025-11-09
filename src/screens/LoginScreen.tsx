@@ -9,6 +9,7 @@ import { TextInput, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, borderRadius, shadows, typography } from '@/styles';
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido').min(1, 'E-mail é obrigatório'),
@@ -39,20 +40,20 @@ export default function LoginScreen() {
   };
 
   // Convert HSL to RGB for LinearGradient
-  const primaryGreen = '#4CAF50'; // hsl(122, 39%, 49%)
-  const primaryGreenLight = '#66BB6A'; // hsl(122, 39%, 55%)
-  const primaryGreenLighter = '#81C784'; // hsl(122, 35%, 60%)
-  const mutedForeground = '#6B7280'; // hsl(215.4, 16.3%, 46.9%)
-  const destructive = '#EF4444'; // hsl(0, 84.2%, 60.2%)
-  const borderColor = '#E5E7EB'; // hsl(214.3, 31.8%, 91.4%)
+  const primaryGreen = colors.primary;
+  const primaryGreenLight = colors.primaryLight;
+  const primaryGreenLighter = colors.primaryLighter;
+  const mutedForeground = colors.text.light;
+  const destructive = colors.error;
+  const borderColor = colors.borderLight;
 
   // Custom theme for TextInput to ensure black text
   const inputTheme = {
     ...theme,
     colors: {
       ...theme.colors,
-      text: '#111827',
-      onSurface: '#111827',
+      text: colors.text.secondary,
+      onSurface: colors.text.secondary,
     },
   };
 
@@ -205,7 +206,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
   },
   gradientBackground: {
     position: 'absolute',
@@ -225,131 +226,117 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 48,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.xxxxxl,
+    paddingBottom: spacing.xxxxxl,
   },
   brandingContainer: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: spacing.xxxxxl,
   },
   logoContainer: {
     backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    padding: 24,
-    borderRadius: 16,
-    marginBottom: 24,
+    padding: spacing.xxl,
+    borderRadius: borderRadius.xl,
+    marginBottom: spacing.xxl,
     width: 96,
     height: 96,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoText: {
-    fontSize: 48,
+    fontSize: typography.sizes.huge,
     fontWeight: '700',
-    color: '#4CAF50',
+    color: colors.primary,
     letterSpacing: -1,
   },
   title: {
-    fontSize: 48,
+    fontSize: typography.sizes.huge,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    color: colors.text.secondary,
+    marginBottom: spacing.sm,
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: typography.sizes.lg,
+    color: colors.text.light,
     textAlign: 'center',
     maxWidth: 280,
     lineHeight: 22,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xxl,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    borderColor: colors.borderLight,
+    ...shadows.lg,
   },
   cardTitle: {
-    fontSize: 24,
+    fontSize: typography.sizes.xxxl,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 24,
+    fontSize: typography.sizes.md,
+    color: colors.text.light,
+    marginBottom: spacing.xxl,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   inputLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   labelText: {
-    fontSize: 14,
+    fontSize: typography.sizes.md,
     fontWeight: '500',
-    color: '#111827',
-    marginLeft: 8,
+    color: colors.text.secondary,
+    marginLeft: spacing.sm,
   },
   input: {
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    fontSize: typography.sizes.lg,
+    backgroundColor: colors.background.primary,
   },
   errorText: {
-    color: '#EF4444',
-    fontSize: 12,
+    color: colors.error,
+    fontSize: typography.sizes.sm,
     marginTop: 6,
-    marginLeft: 4,
+    marginLeft: spacing.xs,
   },
   button: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    shadowColor: '#4CAF50',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: spacing.sm,
+    ...shadows.primary,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.text.white,
+    fontSize: typography.sizes.lg,
     fontWeight: '600',
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   buttonIcon: {
-    marginLeft: 4,
+    marginLeft: spacing.xs,
   },
   footer: {
-    marginTop: 32,
+    marginTop: spacing.xxxxl,
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: typography.sizes.sm,
+    color: colors.text.light,
     textAlign: 'center',
   },
 });

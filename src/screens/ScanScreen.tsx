@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon } from 'lucide-react-native';
 import ScanModal from '@/components/ScanModal';
 import { Boleto } from '@/types';
+import { commonStyles, colors, spacing, borderRadius } from '@/styles';
 
 export default function ScanScreen() {
   const { t } = useTranslation();
@@ -66,40 +67,62 @@ export default function ScanScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('scanBoleto')}</Text>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+      <View style={{ padding: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <Text style={commonStyles.screenTitle}>{t('scanBoleto')}</Text>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.description}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xxl }}>
+        <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, textAlign: 'center', marginBottom: spacing.xxxxl }}>
           Escolha uma opção para escanear o boleto
         </Text>
 
-        <View style={styles.buttonContainer}>
+        <View style={{ width: '100%', gap: spacing.lg }}>
           <TouchableOpacity
-            style={styles.scanButton}
+            style={{
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.lg,
+              padding: spacing.xxxxl,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 2,
+              borderColor: colors.primary,
+              borderStyle: 'dashed',
+            }}
             onPress={handleTakePhoto}
             disabled={isScanning}
           >
-            <Camera size={48} color="#4CAF50" />
-            <Text style={styles.buttonText}>{t('takePhoto')}</Text>
+            <Camera size={48} color={colors.primary} />
+            <Text style={{ marginTop: spacing.md, fontSize: spacing.lg, fontWeight: '600', color: colors.primary }}>
+              {t('takePhoto')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.scanButton}
+            style={{
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.lg,
+              padding: spacing.xxxxl,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 2,
+              borderColor: colors.primary,
+              borderStyle: 'dashed',
+            }}
             onPress={handleChooseFromGallery}
             disabled={isScanning}
           >
-            <ImageIcon size={48} color="#4CAF50" />
-            <Text style={styles.buttonText}>{t('chooseFromGallery')}</Text>
+            <ImageIcon size={48} color={colors.primary} />
+            <Text style={{ marginTop: spacing.md, fontSize: spacing.lg, fontWeight: '600', color: colors.primary }}>
+              {t('chooseFromGallery')}
+            </Text>
           </TouchableOpacity>
         </View>
 
         {isScanning && (
-          <View style={styles.loading}>
-            <ActivityIndicator size="large" color="#4CAF50" />
-            <Text style={styles.loadingText}>{t('scanning')}</Text>
+          <View style={{ marginTop: spacing.xxxxl, alignItems: 'center', gap: spacing.md }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={{ fontSize: spacing.md, color: colors.text.tertiary }}>{t('scanning')}</Text>
           </View>
         )}
       </View>
@@ -117,62 +140,4 @@ export default function ScanScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#212121',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  description: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 16,
-  },
-  scanButton: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#4CAF50',
-    borderStyle: 'dashed',
-  },
-  buttonText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#4CAF50',
-  },
-  loading: {
-    marginTop: 32,
-    alignItems: 'center',
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#757575',
-  },
-});
 

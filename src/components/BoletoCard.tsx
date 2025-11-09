@@ -30,6 +30,7 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
+import { colors, spacing, shadows, borderRadius } from '@/styles';
 
 interface BoletoCardProps {
   boleto: Boleto;
@@ -105,7 +106,7 @@ export default function BoletoCard({
             onEdit();
           }}
         >
-          <Edit color="#fff" size={20} />
+          <Edit color={colors.text.white} size={20} />
           <Text style={styles.actionText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -115,7 +116,7 @@ export default function BoletoCard({
             onDelete();
           }}
         >
-          <Trash2 color="#fff" size={20} />
+          <Trash2 color={colors.text.white} size={20} />
           <Text style={styles.actionText}>Excluir</Text>
         </TouchableOpacity>
       </View>
@@ -123,8 +124,8 @@ export default function BoletoCard({
   };
 
   const getStatusIcon = () => {
-    const iconColor = statusColor === '#4CAF50' ? '#4CAF50' : statusColor === '#F44336' ? '#F44336' : '#FF9800';
-    return <Circle size={8} color={iconColor} fill={iconColor} />;
+    const iconColor = statusColor === colors.primary ? colors.primary : statusColor === colors.error ? colors.error : colors.warning;
+    return <Circle size={0} color={iconColor} fill={iconColor} />;
   };
 
   return (
@@ -151,7 +152,7 @@ export default function BoletoCard({
 
           {/* Vencimento with urgency indicator */}
           <Animated.View style={[styles.vencimentoContainer, wiggleStyle]}>
-            {isUrgent && <Clock size={14} color="#FFC107" style={styles.clockIcon} />}
+            {isUrgent && <Clock size={14} color={colors.status.warning} style={styles.clockIcon} />}
             <Text
               style={[
                 styles.vencimento,
@@ -172,7 +173,7 @@ export default function BoletoCard({
                 setShowComprovantePreview(true);
               }}
             >
-              <FileText size={16} color="#fff" style={{ marginRight: 4 }} />
+              <FileText size={16} color={colors.text.white} style={{ marginRight: 4 }} />
               <Text style={styles.receiptButtonText}>Ver Comprovante</Text>
             </TouchableOpacity>
           ) : (status === 'PENDENTE' || status === 'VENCIDO') ? (
@@ -215,7 +216,7 @@ export default function BoletoCard({
                   onPress={handleCloseModal}
                   style={styles.modalCloseButton}
                 >
-                  <X size={24} color="#111827" />
+                  <X size={24} color={colors.text.secondary} />
                 </TouchableOpacity>
               </View>
 
@@ -234,7 +235,7 @@ export default function BoletoCard({
               {/* Details Grid */}
               <View style={styles.modalDetails}>
                 <View style={styles.modalDetailRow}>
-                  <Calendar size={20} color="#6B7280" />
+                  <Calendar size={20} color={colors.text.light} />
                   <View style={styles.modalDetailText}>
                     <Text style={styles.modalDetailLabel}>Vencimento</Text>
                     <Text style={styles.modalDetailValue}>
@@ -312,7 +313,7 @@ export default function BoletoCard({
                     onEdit();
                   }}
                 >
-                  <Edit size={20} color="#2196F3" />
+                  <Edit size={20} color={colors.secondary} />
                   <Text style={styles.modalEditButtonText}>Editar</Text>
                 </TouchableOpacity>
               </View>
@@ -332,121 +333,120 @@ export default function BoletoCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+    marginHorizontal: spacing.lg,
+    ...shadows.md,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   fornecedorText: {
-    fontSize: 14,
+    fontSize: spacing.md,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text.secondary,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: borderRadius.lg,
+    gap: 1,
+    minHeight: 28,
   },
   statusText: {
-    color: '#FFFFFF',
-    fontSize: 11,
+    color: colors.text.white,
+    fontSize: spacing.md,
     fontWeight: '600',
+    lineHeight: spacing.md,
   },
   valor: {
-    fontSize: 24,
+    fontSize: spacing.xxxl,
     fontWeight: '700',
-    color: '#16A34A',
-    marginBottom: 8,
+    color: colors.primary,
+    marginBottom: spacing.sm,
   },
   vencimentoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   clockIcon: {
-    marginRight: 4,
+    marginRight: spacing.xs,
   },
   vencimento: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: spacing.md,
+    color: colors.text.light,
     fontStyle: 'italic',
     textAlign: 'center',
     minWidth: 100,
   },
   vencimentoUrgent: {
-    color: '#FFC107',
+    color: colors.status.warning,
     fontWeight: '600',
   },
   payButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   payButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.text.white,
+    fontSize: spacing.lg,
     fontWeight: '600',
   },
   receiptButton: {
-    backgroundColor: '#2196F3',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.secondary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: spacing.xs,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 4,
+    gap: spacing.xs,
   },
   receiptButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.text.white,
+    fontSize: spacing.lg,
     fontWeight: '600',
   },
   rightActions: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginRight: 16,
-    marginVertical: 8,
-    gap: 8,
+    marginRight: spacing.lg,
+    marginVertical: spacing.sm,
+    gap: spacing.sm,
   },
   actionButton: {
     width: 80,
     height: '80%',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    gap: 4,
+    borderRadius: borderRadius.md,
+    gap: spacing.xs,
   },
   editButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.secondary,
   },
   deleteButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: colors.error,
   },
   actionText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+    color: colors.text.white,
+    fontSize: spacing.sm,
     fontWeight: '600',
   },
   // Modal Styles
@@ -456,14 +456,14 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.overlay,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: colors.background.primary,
+    borderTopLeftRadius: borderRadius.xxl,
+    borderTopRightRadius: borderRadius.xxl,
     maxHeight: '70%',
-    paddingBottom: 40,
+    paddingBottom: spacing.xxxxl,
   },
   modalScroll: {
     flex: 1,
@@ -472,138 +472,138 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingBottom: 12,
+    padding: spacing.xl,
+    paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.borderLight,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: spacing.xxl,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text.secondary,
     flex: 1,
   },
   modalCloseButton: {
-    padding: 4,
+    padding: spacing.xs,
   },
   modalStatusContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
   },
   modalStatusBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
   },
   modalStatusText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+    color: colors.text.white,
+    fontSize: spacing.sm,
     fontWeight: '600',
   },
   modalValorContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
   },
   modalValor: {
-    fontSize: 32,
+    fontSize: spacing.xxxxl,
     fontWeight: '700',
-    color: '#16A34A',
+    color: colors.primary,
   },
   modalDetails: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    gap: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    gap: spacing.lg,
   },
   modalDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
   },
   modalCategorySwatch: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: colors.borderLight,
   },
   modalDetailText: {
     flex: 1,
   },
   modalDetailLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: spacing.sm,
+    color: colors.text.light,
+    marginBottom: spacing.xs,
   },
   modalDetailValue: {
-    fontSize: 16,
-    color: '#111827',
+    fontSize: spacing.lg,
+    color: colors.text.secondary,
     fontWeight: '500',
   },
   modalImageContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   modalImage: {
     width: '100%',
     height: 200,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.tertiary,
   },
   modalComprovanteContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   modalComprovanteLabel: {
-    fontSize: 14,
+    fontSize: spacing.md,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
+    color: colors.text.secondary,
+    marginBottom: spacing.sm,
   },
   modalComprovanteImage: {
     width: '100%',
     height: 150,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.tertiary,
   },
   modalNoReceipt: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   modalNoReceiptText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: spacing.md,
+    color: colors.text.light,
     fontStyle: 'italic',
   },
   modalActions: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    gap: 12,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
+    gap: spacing.md,
   },
   modalPayButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
   },
   modalPayButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.text.white,
+    fontSize: spacing.lg,
     fontWeight: '600',
   },
   modalEditButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: '#2196F3',
-    gap: 8,
+    borderColor: colors.secondary,
+    gap: spacing.sm,
   },
   modalEditButtonText: {
-    color: '#2196F3',
-    fontSize: 16,
+    color: colors.secondary,
+    fontSize: spacing.lg,
     fontWeight: '600',
   },
 });

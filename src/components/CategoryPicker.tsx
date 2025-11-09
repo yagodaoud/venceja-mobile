@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Categoria } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { commonStyles, colors, spacing, borderRadius } from '@/styles';
 
 interface CategoryPickerProps {
   categories: Categoria[];
@@ -28,15 +29,27 @@ export default function CategoryPicker({ categories, selectedId, onSelect, showL
     return (
       <TouchableOpacity
         style={[
-          styles.option,
-          !isNone && styles.categoryOption,
-          isSelected && styles.selectedOption,
+          {
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.sm,
+            borderRadius: borderRadius.full,
+            borderWidth: 1,
+            borderColor: colors.border,
+            marginRight: spacing.sm,
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          !isNone && { flexDirection: 'row', alignItems: 'center', gap: 6 },
+          isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
         ]}
         onPress={() => onSelect(item.id)}
       >
-        {!isNone && <View style={[styles.colorDot, { backgroundColor: item.cor }]} />}
+        {!isNone && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: item.cor }} />}
         <Text
-          style={[styles.optionText, isSelected && styles.selectedText]}
+          style={[
+            { fontSize: spacing.md, color: colors.text.tertiary },
+            isSelected && { color: colors.text.white, fontWeight: '600' },
+          ]}
           numberOfLines={1}
         >
           {item.nome}
@@ -46,64 +59,17 @@ export default function CategoryPicker({ categories, selectedId, onSelect, showL
   };
 
   return (
-    <View style={styles.container}>
-      {showLabel && <Text style={styles.label}>{t('category')}</Text>}
+    <View style={{ marginVertical: spacing.sm }}>
+      {showLabel && <Text style={commonStyles.label}>{t('category')}</Text>}
       <FlatList
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => (item.id === null ? 'none' : item.id.toString())}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ paddingRight: spacing.sm }}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 8,
-  },
-  listContent: {
-    paddingRight: 8,
-  },
-  option: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  selectedOption: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
-  },
-  optionText: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  selectedText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  colorDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-});
 

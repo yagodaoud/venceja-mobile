@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCategories } from '@/hooks/useCategories';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { Dialog, TextInput, Button } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { commonStyles, colors, spacing, shadows } from '@/styles';
 
 const categorySchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -76,28 +77,40 @@ export default function CategoriesScreen() {
   };
 
   const renderItem = ({ item }: { item: Categoria }) => (
-    <View style={styles.categoryItem}>
-      <View style={styles.categoryInfo}>
-        <View style={[styles.colorSwatch, { backgroundColor: item.cor }]} />
-        <Text style={styles.categoryName}>{item.nome}</Text>
+    <View style={[commonStyles.card, { marginBottom: spacing.sm, marginHorizontal: 0 }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 }}>
+        <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: item.cor }} />
+        <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary, flex: 1 }}>
+          {item.nome}
+        </Text>
       </View>
-      <View style={styles.actions}>
+      <View style={{ flexDirection: 'row', gap: spacing.lg }}>
         <TouchableOpacity onPress={() => handleEdit(item)}>
-          <Edit size={20} color="#2196F3" />
+          <Edit size={20} color={colors.secondary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleDelete(item)}>
-          <Trash2 size={20} color="#F44336" />
+          <Trash2 size={20} color={colors.error} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('categories')}</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleCreate}>
-          <Plus size={24} color="#4CAF50" />
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+      <View style={commonStyles.screenHeader}>
+        <Text style={commonStyles.screenTitle}>{t('categories')}</Text>
+        <TouchableOpacity
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.background.secondary,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          onPress={handleCreate}
+        >
+          <Plus size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -105,10 +118,10 @@ export default function CategoriesScreen() {
         data={categories}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={{ padding: spacing.lg }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>{t('noCategories')}</Text>
+          <View style={commonStyles.empty}>
+            <Text style={commonStyles.emptyText}>{t('noCategories')}</Text>
           </View>
         }
       />
@@ -135,12 +148,12 @@ export default function CategoriesScreen() {
               onChangeText={onChange}
               error={!!errors.nome}
               mode="outlined"
-              style={styles.input}
+              style={commonStyles.input}
             />
           )}
         />
         {errors.nome && (
-          <Text style={styles.error}>{errors.nome.message}</Text>
+          <Text style={commonStyles.errorText}>{errors.nome.message}</Text>
         )}
 
         <Controller
@@ -154,15 +167,15 @@ export default function CategoriesScreen() {
                 onChangeText={onChange}
                 error={!!errors.cor}
                 mode="outlined"
-                style={styles.input}
+                style={commonStyles.input}
                 placeholder="#4CAF50"
               />
-              <View style={[styles.colorPreview, { backgroundColor: value }]} />
+              <View style={{ width: '100%', height: 40, borderRadius: 4, marginTop: spacing.sm, backgroundColor: value }} />
             </View>
           )}
         />
         {errors.cor && (
-          <Text style={styles.error}>{errors.cor.message}</Text>
+          <Text style={commonStyles.errorText}>{errors.cor.message}</Text>
         )}
         </Dialog.Content>
         <Dialog.Actions>
@@ -176,11 +189,13 @@ export default function CategoriesScreen() {
       <Dialog visible={deleteModalVisible} onDismiss={() => setDeleteModalVisible(false)}>
         <Dialog.Title>{t('confirmDelete')}</Dialog.Title>
         <Dialog.Content>
-          <Text style={styles.modalText}>{t('confirmDeleteMessage')}</Text>
+          <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, marginBottom: spacing.lg }}>
+            {t('confirmDeleteMessage')}
+          </Text>
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={() => setDeleteModalVisible(false)}>{t('cancel')}</Button>
-          <Button onPress={confirmDelete} textColor="#F44336">
+          <Button onPress={confirmDelete} textColor={colors.error}>
             {t('delete')}
           </Button>
         </Dialog.Actions>
@@ -188,97 +203,4 @@ export default function CategoriesScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#212121',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  list: {
-    padding: 16,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  categoryInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  colorSwatch: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212121',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  empty: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#757575',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#757575',
-    marginBottom: 16,
-  },
-  input: {
-    marginBottom: 8,
-  },
-  error: {
-    color: '#F44336',
-    fontSize: 12,
-    marginBottom: 8,
-  },
-  colorPreview: {
-    width: '100%',
-    height: 40,
-    borderRadius: 4,
-    marginTop: 8,
-  },
-});
 

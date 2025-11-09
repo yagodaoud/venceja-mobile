@@ -12,6 +12,7 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
+import { colors, spacing } from '@/styles';
 
 interface EngagingHeaderProps {
   expiringTodayCount?: number;
@@ -64,7 +65,7 @@ export default function EngagingHeader({
 
   return (
     <LinearGradient
-      colors={['#E8F5E8', '#FFFFFF']}
+      colors={[colors.primaryLightest, colors.background.primary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.gradient}
@@ -74,7 +75,7 @@ export default function EngagingHeader({
           {/* Top Row: Logo and Bell */}
           <View style={styles.topRow}>
             <View style={styles.logoContainer}>
-              <ForkKnife size={24} color="#4CAF50" strokeWidth={2} />
+              <ForkKnife size={24} color={colors.primary} strokeWidth={2} />
               <Text style={styles.logoText}>VenceJá</Text>
             </View>
 
@@ -83,7 +84,7 @@ export default function EngagingHeader({
               onPress={onBellPress}
               activeOpacity={0.7}
             >
-              <Bell size={24} color="#111827" />
+              <Bell size={24} color={colors.text.secondary} />
               {hasPending && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
@@ -103,7 +104,7 @@ export default function EngagingHeader({
           {/* Metrics Chip */}
           {hasExpiring && (
             <Animated.View style={[styles.metricsChip, pulseAnimatedStyle]}>
-              <Clock size={14} color="#F44336" />
+              <Clock size={14} color={colors.error} />
               <Text style={styles.metricsText}>
                 {expiringTodayCount} vencendo hoje
               </Text>
@@ -125,80 +126,80 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
     justifyContent: 'space-between',
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   logoText: {
-    fontSize: 20,
+    fontSize: spacing.xxl,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text.secondary,
     letterSpacing: -0.5,
   },
   bellContainer: {
     position: 'relative',
-    padding: 8,
+    padding: spacing.sm,
   },
   badge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#F44336',
+    top: spacing.xs,
+    right: spacing.xs,
+    backgroundColor: colors.error,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: spacing.xs,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: colors.text.white,
   },
   badgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
+    color: colors.text.white,
+    fontSize: spacing.xs + 2,
     fontWeight: '700',
   },
   greetingContainer: {
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   greeting: {
-    fontSize: 18,
+    fontSize: spacing.xl,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text.secondary,
     marginBottom: 2,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: spacing.md,
+    color: colors.text.light,
   },
   metricsChip: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#FFEBEE',
-    paddingHorizontal: 12,
+    backgroundColor: colors.destructiveLight,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: spacing.lg,
     gap: 6,
     borderWidth: 1,
-    borderColor: '#FFCDD2',
+    borderColor: colors.destructiveBorder,
   },
   metricsText: {
-    fontSize: 12,
+    fontSize: spacing.sm,
     fontWeight: '600',
-    color: '#F44336',
+    color: colors.error,
   },
 });
 

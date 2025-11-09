@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useCategories } from '@/hooks/useCategories';
@@ -13,6 +13,7 @@ import { format, parse } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CategoryPicker from './CategoryPicker';
 import { useModalStore } from '@/store/modalStore';
+import { modalStyles, commonStyles, colors, spacing } from '@/styles';
 
 const scanSchema = z.object({
   fornecedor: z.string().min(1, 'Fornecedor é obrigatório'),
@@ -116,18 +117,18 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
       presentationStyle="overFullScreen"
       statusBarTranslucent
     >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('editScanData')}</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color="#757575" />
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.modal}>
+          <View style={modalStyles.headerNoBorder}>
+            <Text style={modalStyles.title}>{t('editScanData')}</Text>
+            <TouchableOpacity onPress={handleClose} style={modalStyles.closeButton}>
+              <X size={24} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView style={modalStyles.contentScroll} showsVerticalScrollIndicator={false}>
             {scannedImageUri && (
-              <Image source={{ uri: scannedImageUri }} style={styles.image} />
+              <Image source={{ uri: scannedImageUri }} style={[modalStyles.image, { marginBottom: spacing.lg }]} />
             )}
 
             <Controller
@@ -140,12 +141,12 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
                   onChangeText={onChange}
                   error={!!errors.fornecedor}
                   mode="outlined"
-                  style={styles.input}
+                  style={commonStyles.input}
                 />
               )}
             />
             {errors.fornecedor && (
-              <Text style={styles.error}>{errors.fornecedor.message}</Text>
+              <Text style={commonStyles.errorText}>{errors.fornecedor.message}</Text>
             )}
 
             <Controller
@@ -159,12 +160,12 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
                   error={!!errors.valor}
                   mode="outlined"
                   keyboardType="numeric"
-                  style={styles.input}
+                  style={commonStyles.input}
                 />
               )}
             />
             {errors.valor && (
-              <Text style={styles.error}>{errors.valor.message}</Text>
+              <Text style={commonStyles.errorText}>{errors.valor.message}</Text>
             )}
 
             <Controller
@@ -173,10 +174,10 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
               render={({ field: { value } }) => (
                 <>
                   <TouchableOpacity
-                    style={styles.dateButton}
+                    style={[commonStyles.input, { justifyContent: 'center', minHeight: 48 }]}
                     onPress={() => setShowDatePicker(true)}
                   >
-                    <Text style={styles.dateButtonText}>
+                    <Text style={{ fontSize: spacing.lg, color: value ? colors.text.secondary : colors.text.lighter }}>
                       {t('dueDate')}: {value || t('date')}
                     </Text>
                   </TouchableOpacity>
@@ -193,7 +194,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
               )}
             />
             {errors.vencimento && (
-              <Text style={styles.error}>{errors.vencimento.message}</Text>
+              <Text style={commonStyles.errorText}>{errors.vencimento.message}</Text>
             )}
 
             <Controller
@@ -205,7 +206,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
                   value={value}
                   onChangeText={onChange}
                   mode="outlined"
-                  style={styles.input}
+                  style={commonStyles.input}
                 />
               )}
             />
@@ -222,18 +223,18 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
               )}
             />
 
-            <View style={styles.actions}>
+            <View style={[modalStyles.actions, { marginTop: spacing.xl, marginBottom: spacing.xl, paddingTop: 0, borderTopWidth: 0 }]}>
               <Button
                 mode="outlined"
                 onPress={handleClose}
-                style={styles.cancelButton}
+                style={{ flex: 1, borderColor: colors.text.tertiary }}
               >
                 {t('cancel')}
               </Button>
               <Button
                 mode="contained"
                 onPress={handleSubmit(onSubmit)}
-                style={styles.saveButton}
+                style={{ flex: 1, backgroundColor: colors.primary }}
               >
                 {t('save')}
               </Button>
@@ -245,74 +246,4 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '90%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#212121',
-  },
-  content: {
-    gap: 12,
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 16,
-    resizeMode: 'cover',
-  },
-  input: {
-    marginBottom: 8,
-  },
-  error: {
-    color: '#F44336',
-    fontSize: 12,
-    marginBottom: 8,
-  },
-  dateButton: {
-    borderWidth: 1,
-    borderColor: '#757575',
-    borderRadius: 4,
-    padding: 16,
-    marginBottom: 8,
-  },
-  dateButtonText: {
-    fontSize: 16,
-    color: '#212121',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  cancelButton: {
-    flex: 1,
-    borderColor: '#757575',
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#4CAF50',
-  },
-});
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Image } from 'react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon, X } from 'lucide-react-native';
 import { Button } from 'react-native-paper';
 import { useModalStore } from '@/store/modalStore';
+import { modalStyles, colors, spacing } from '@/styles';
 
 interface PaymentModalProps {
   visible: boolean;
@@ -88,50 +89,52 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
       presentationStyle="overFullScreen"
       statusBarTranslucent
     >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('markAsPaid')}</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color="#757575" />
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.modalFullScreen}>
+          <View style={modalStyles.headerNoBorder}>
+            <Text style={modalStyles.title}>{t('markAsPaid')}</Text>
+            <TouchableOpacity onPress={handleClose} style={modalStyles.closeButton}>
+              <X size={24} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.content}>
-            <Text style={styles.boletoInfo}>
+          <View style={modalStyles.contentScroll}>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, marginBottom: spacing.sm }}>
               {boleto.fornecedor} - {t('value')}: R$ {boleto.valor.toFixed(2)}
             </Text>
 
-            <Text style={styles.label}>{t('addReceipt')} ({t('optional')})</Text>
+            <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary, marginTop: spacing.sm }}>
+              {t('addReceipt')} ({t('optional')})
+            </Text>
 
             {comprovanteUri ? (
-              <View style={styles.imageContainer}>
-                <Image source={{ uri: comprovanteUri }} style={styles.image} />
+              <View style={modalStyles.imageContainer}>
+                <Image source={{ uri: comprovanteUri }} style={modalStyles.image} />
                 <TouchableOpacity
-                  style={styles.removeImage}
+                  style={modalStyles.removeImageButton}
                   onPress={() => setComprovanteUri(null)}
                 >
-                  <X size={20} color="#fff" />
+                  <X size={20} color={colors.text.white} />
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
-                  <Camera size={24} color="#4CAF50" />
-                  <Text style={styles.imageButtonText}>{t('takePhoto')}</Text>
+              <View style={modalStyles.buttonRow}>
+                <TouchableOpacity style={modalStyles.imageButton} onPress={handleTakePhoto}>
+                  <Camera size={24} color={colors.primary} />
+                  <Text style={modalStyles.imageButtonText}>{t('takePhoto')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.imageButton} onPress={handleChooseFromGallery}>
-                  <ImageIcon size={24} color="#4CAF50" />
-                  <Text style={styles.imageButtonText}>{t('chooseFromGallery')}</Text>
+                <TouchableOpacity style={modalStyles.imageButton} onPress={handleChooseFromGallery}>
+                  <ImageIcon size={24} color={colors.primary} />
+                  <Text style={modalStyles.imageButtonText}>{t('chooseFromGallery')}</Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            <View style={styles.actions}>
+            <View style={[modalStyles.actions, { marginTop: spacing.xl, paddingTop: 0, borderTopWidth: 0 }]}>
               <Button
                 mode="outlined"
                 onPress={handleClose}
-                style={styles.cancelButton}
+                style={{ flex: 1, borderColor: colors.text.tertiary }}
                 disabled={isMarkingPaid}
               >
                 {t('cancel')}
@@ -139,7 +142,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
               <Button
                 mode="contained"
                 onPress={handleMarkPaid}
-                style={styles.confirmButton}
+                style={{ flex: 1, backgroundColor: colors.primary }}
                 loading={isMarkingPaid}
                 disabled={isMarkingPaid}
               >
@@ -153,98 +156,4 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#212121',
-  },
-  content: {
-    gap: 16,
-  },
-  boletoInfo: {
-    fontSize: 16,
-    color: '#757575',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212121',
-    marginTop: 8,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  imageButton: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: '#4CAF50',
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    gap: 8,
-  },
-  imageButtonText: {
-    color: '#4CAF50',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  imageContainer: {
-    position: 'relative',
-    marginTop: 8,
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    resizeMode: 'cover',
-  },
-  removeImage: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 20,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  cancelButton: {
-    flex: 1,
-    borderColor: '#757575',
-  },
-  confirmButton: {
-    flex: 1,
-    backgroundColor: '#4CAF50',
-  },
-});
 

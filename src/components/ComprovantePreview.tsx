@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { X, ZoomIn, ZoomOut } from 'lucide-react-native';
+import { modalStyles, colors, spacing } from '@/styles';
 
 interface ComprovantePreviewProps {
   visible: boolean;
@@ -18,30 +19,30 @@ export default function ComprovantePreview({ visible, imageUri, onClose }: Compr
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Comprovante</Text>
-          <View style={styles.headerActions}>
+      <View style={modalStyles.overlayDark}>
+        <View style={modalStyles.imagePreviewHeader}>
+          <Text style={modalStyles.imagePreviewTitle}>Comprovante</Text>
+          <View style={modalStyles.imagePreviewActions}>
             <TouchableOpacity
-              style={styles.zoomButton}
+              style={modalStyles.imagePreviewButton}
               onPress={() => setScale(Math.min(scale + 0.5, 3))}
             >
-              <ZoomIn size={24} color="#fff" />
+              <ZoomIn size={24} color={colors.text.white} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.zoomButton}
+              style={modalStyles.imagePreviewButton}
               onPress={() => setScale(Math.max(scale - 0.5, 0.5))}
             >
-              <ZoomOut size={24} color="#fff" />
+              <ZoomOut size={24} color={colors.text.white} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <X size={24} color="#fff" />
+            <TouchableOpacity style={modalStyles.imagePreviewButton} onPress={onClose}>
+              <X size={24} color={colors.text.white} />
             </TouchableOpacity>
           </View>
         </View>
         <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          style={modalStyles.imagePreviewScrollView}
+          contentContainerStyle={modalStyles.imagePreviewScrollContent}
           maximumZoomScale={3}
           minimumZoomScale={0.5}
           showsVerticalScrollIndicator={false}
@@ -49,7 +50,7 @@ export default function ComprovantePreview({ visible, imageUri, onClose }: Compr
         >
           <Image
             source={{ uri: imageUri }}
-            style={[styles.image, { transform: [{ scale }] }]}
+            style={[modalStyles.imagePreviewImage, { transform: [{ scale }] }]}
             resizeMode="contain"
           />
         </ScrollView>
@@ -58,48 +59,4 @@ export default function ComprovantePreview({ visible, imageUri, onClose }: Compr
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: 50,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'center',
-  },
-  zoomButton: {
-    padding: 8,
-  },
-  closeButton: {
-    padding: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    minHeight: 400,
-  },
-});
 

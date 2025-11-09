@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/store/authStore';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { LogOut } from 'lucide-react-native';
 import { Dialog } from 'react-native-paper';
+import { commonStyles, colors, spacing } from '@/styles';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
@@ -76,48 +77,48 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('settings')}</Text>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+      <View style={{ padding: spacing.lg, backgroundColor: colors.background.primary, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <Text style={commonStyles.screenTitle}>{t('settings')}</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Conta</Text>
-          <View style={styles.settingItem}>
-            <Text style={styles.settingLabel}>{t('email')}</Text>
-            <Text style={styles.settingValue}>{user?.email}</Text>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.sectionTitle}>Conta</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('email')}</Text>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary }}>{user?.email}</Text>
           </View>
           {user?.cnpj && (
-            <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>CNPJ</Text>
-              <Text style={styles.settingValue}>{user.cnpj}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}>
+              <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>CNPJ</Text>
+              <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary }}>{user.cnpj}</Text>
             </View>
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Segurança</Text>
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.sectionTitle}>Segurança</Text>
           <TouchableOpacity
-            style={styles.settingItem}
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}
             onPress={() => setPasswordModalVisible(true)}
           >
-            <Text style={styles.settingLabel}>{t('changePassword')}</Text>
-            <Text style={styles.settingAction}>→</Text>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('changePassword')}</Text>
+            <Text style={{ fontSize: spacing.xxl, color: colors.text.tertiary }}>→</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.settingItem}
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}
             onPress={() => setCnpjModalVisible(true)}
           >
-            <Text style={styles.settingLabel}>{t('updateCNPJ')}</Text>
-            <Text style={styles.settingAction}>→</Text>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('updateCNPJ')}</Text>
+            <Text style={{ fontSize: spacing.xxl, color: colors.text.tertiary }}>→</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Aparência</Text>
-          <View style={styles.settingItem}>
-            <Text style={styles.settingLabel}>{t('darkMode')}</Text>
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.sectionTitle}>Aparência</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('darkMode')}</Text>
             <Switch
               value={darkMode}
               onValueChange={setDarkMode}
@@ -126,22 +127,22 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={commonStyles.section}>
           <TouchableOpacity
-            style={styles.logoutButton}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: spacing.lg, backgroundColor: colors.destructiveLight, borderRadius: spacing.sm, gap: spacing.sm }}
             onPress={handleLogout}
           >
-            <LogOut size={20} color="#F44336" />
-            <Text style={styles.logoutText}>{t('logout')}</Text>
+            <LogOut size={20} color={colors.error} />
+            <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.error }}>{t('logout')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* TODO: Future features */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recursos Futuros</Text>
-          <Text style={styles.todoText}>• Biometria (expo-local-authentication)</Text>
-          <Text style={styles.todoText}>• Scanner de código de barras (expo-barcode-scanner)</Text>
-          <Text style={styles.todoText}>• Notificações push completas (expo-notifications com webhook)</Text>
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.sectionTitle}>Recursos Futuros</Text>
+          <Text style={{ fontSize: spacing.md, color: colors.text.tertiary, marginBottom: spacing.sm, fontStyle: 'italic' }}>• Biometria (expo-local-authentication)</Text>
+          <Text style={{ fontSize: spacing.md, color: colors.text.tertiary, marginBottom: spacing.sm, fontStyle: 'italic' }}>• Scanner de código de barras (expo-barcode-scanner)</Text>
+          <Text style={{ fontSize: spacing.md, color: colors.text.tertiary, marginBottom: spacing.sm, fontStyle: 'italic' }}>• Notificações push completas (expo-notifications com webhook)</Text>
         </View>
       </ScrollView>
 
@@ -166,12 +167,12 @@ export default function SettingsScreen() {
               error={!!errors.currentPassword}
               mode="outlined"
               secureTextEntry
-              style={styles.input}
+              style={commonStyles.input}
             />
           )}
         />
         {errors.currentPassword && (
-          <Text style={styles.error}>{errors.currentPassword.message}</Text>
+          <Text style={commonStyles.errorText}>{errors.currentPassword.message}</Text>
         )}
 
         <Controller
@@ -185,12 +186,12 @@ export default function SettingsScreen() {
               error={!!errors.newPassword}
               mode="outlined"
               secureTextEntry
-              style={styles.input}
+              style={commonStyles.input}
             />
           )}
         />
         {errors.newPassword && (
-          <Text style={styles.error}>{errors.newPassword.message}</Text>
+          <Text style={commonStyles.errorText}>{errors.newPassword.message}</Text>
         )}
 
         <Controller
@@ -204,12 +205,12 @@ export default function SettingsScreen() {
               error={!!errors.confirmPassword}
               mode="outlined"
               secureTextEntry
-              style={styles.input}
+              style={commonStyles.input}
             />
           )}
         />
         {errors.confirmPassword && (
-          <Text style={styles.error}>{errors.confirmPassword.message}</Text>
+          <Text style={commonStyles.errorText}>{errors.confirmPassword.message}</Text>
         )}
         </Dialog.Content>
         <Dialog.Actions>
@@ -236,7 +237,7 @@ export default function SettingsScreen() {
           onChangeText={setNewCnpj}
           mode="outlined"
           keyboardType="numeric"
-          style={styles.input}
+          style={commonStyles.input}
           placeholder="00.000.000/0000-00"
         />
         </Dialog.Content>
@@ -250,87 +251,4 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#212121',
-  },
-  content: {
-    flex: 1,
-  },
-  section: {
-    backgroundColor: '#fff',
-    marginTop: 16,
-    padding: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#212121',
-    marginBottom: 12,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
-  },
-  settingLabel: {
-    fontSize: 16,
-    color: '#212121',
-  },
-  settingValue: {
-    fontSize: 16,
-    color: '#757575',
-  },
-  settingAction: {
-    fontSize: 20,
-    color: '#757575',
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#FFEBEE',
-    borderRadius: 8,
-    gap: 8,
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F44336',
-  },
-  todoText: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 8,
-    fontStyle: 'italic',
-  },
-  input: {
-    marginBottom: 8,
-  },
-  error: {
-    color: '#F44336',
-    fontSize: 12,
-    marginBottom: 8,
-  },
-});
 

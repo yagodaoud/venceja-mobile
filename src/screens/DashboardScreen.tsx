@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DateRange, getCurrentMonthRange, getLastMonthRange, getLast3MonthsRange, getCurrentBimestreRange, areDateRangesEqual, toDDMMYYYY } from '@/lib/utils';
 import { Dialog, Button as PaperButton } from 'react-native-paper';
+import { commonStyles, colors, spacing, shadows } from '@/styles';
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
@@ -85,101 +86,109 @@ export default function DashboardScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+      <View style={commonStyles.screenHeader}>
         <View>
-          <Text style={styles.title}>Meus Boletos</Text>
-          <Text style={styles.subtitle}>Gerencie seus pagamentos</Text>
+          <Text style={[commonStyles.screenTitle, { marginBottom: spacing.xs }]}>Meus Boletos</Text>
+          <Text style={commonStyles.screenSubtitle}>Gerencie seus pagamentos</Text>
         </View>
         <TouchableOpacity
-          style={styles.scanButton}
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            backgroundColor: colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            ...shadows.md,
+          }}
           onPress={() => setAddModalVisible(true)}
         >
-          <Plus size={24} color="#fff" />
+          <Plus size={24} color={colors.text.white} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filters}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateFilters}>
+      <View style={{ padding: spacing.lg, backgroundColor: colors.background.primary, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
           <TouchableOpacity
             style={[
-              styles.dateFilterButton,
-              areDateRangesEqual(dateRange, getCurrentMonthRange()) && styles.dateFilterButtonActive
+              commonStyles.filterButton,
+              areDateRangesEqual(dateRange, getCurrentMonthRange()) && commonStyles.filterButtonActive
             ]}
             onPress={() => setDateRange(getCurrentMonthRange())}
           >
             <Text style={[
-              styles.dateFilterButtonText,
-              areDateRangesEqual(dateRange, getCurrentMonthRange()) && styles.dateFilterButtonTextActive
+              commonStyles.filterButtonText,
+              areDateRangesEqual(dateRange, getCurrentMonthRange()) && commonStyles.filterButtonTextActive
             ]}>
               Este Mês
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.dateFilterButton,
-              areDateRangesEqual(dateRange, getLastMonthRange()) && styles.dateFilterButtonActive
+              commonStyles.filterButton,
+              areDateRangesEqual(dateRange, getLastMonthRange()) && commonStyles.filterButtonActive
             ]}
             onPress={() => setDateRange(getLastMonthRange())}
           >
             <Text style={[
-              styles.dateFilterButtonText,
-              areDateRangesEqual(dateRange, getLastMonthRange()) && styles.dateFilterButtonTextActive
+              commonStyles.filterButtonText,
+              areDateRangesEqual(dateRange, getLastMonthRange()) && commonStyles.filterButtonTextActive
             ]}>
               Último Mês
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.dateFilterButton,
-              areDateRangesEqual(dateRange, getLast3MonthsRange()) && styles.dateFilterButtonActive
+              commonStyles.filterButton,
+              areDateRangesEqual(dateRange, getLast3MonthsRange()) && commonStyles.filterButtonActive
             ]}
             onPress={() => setDateRange(getLast3MonthsRange())}
           >
             <Text style={[
-              styles.dateFilterButtonText,
-              areDateRangesEqual(dateRange, getLast3MonthsRange()) && styles.dateFilterButtonTextActive
+              commonStyles.filterButtonText,
+              areDateRangesEqual(dateRange, getLast3MonthsRange()) && commonStyles.filterButtonTextActive
             ]}>
               Últimos 3 Meses
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.dateFilterButton,
-              areDateRangesEqual(dateRange, getCurrentBimestreRange()) && styles.dateFilterButtonActive
+              commonStyles.filterButton,
+              areDateRangesEqual(dateRange, getCurrentBimestreRange()) && commonStyles.filterButtonActive
             ]}
             onPress={() => setDateRange(getCurrentBimestreRange())}
           >
             <Text style={[
-              styles.dateFilterButtonText,
-              areDateRangesEqual(dateRange, getCurrentBimestreRange()) && styles.dateFilterButtonTextActive
+              commonStyles.filterButtonText,
+              areDateRangesEqual(dateRange, getCurrentBimestreRange()) && commonStyles.filterButtonTextActive
             ]}>
               Bimestre Atual
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.dateFilterButton,
-              !dateRange && styles.dateFilterButtonActive
+              commonStyles.filterButton,
+              !dateRange && commonStyles.filterButtonActive
             ]}
             onPress={() => setDateRange(undefined)}
           >
             <Text style={[
-              styles.dateFilterButtonText,
-              !dateRange && styles.dateFilterButtonTextActive
+              commonStyles.filterButtonText,
+              !dateRange && commonStyles.filterButtonTextActive
             ]}>
               Todos os Períodos
             </Text>
           </TouchableOpacity>
         </ScrollView>
 
-        <View style={styles.filterRow}>
+        <View style={{ marginTop: spacing.sm }}>
           <StatusDropdown
             selectedStatus={statusFilter}
             onStatusChange={setStatusFilter}
           />
         </View>
-        <View style={styles.dateRangeRow}>
+        <View style={{ marginTop: spacing.sm }}>
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
@@ -191,13 +200,13 @@ export default function DashboardScreen() {
         data={boletos}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={commonStyles.list}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={refetch} />
         }
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>{t('noBoletos')}</Text>
+          <View style={commonStyles.empty}>
+            <Text style={commonStyles.emptyText}>{t('noBoletos')}</Text>
           </View>
         }
       />
@@ -231,13 +240,13 @@ export default function DashboardScreen() {
       <Dialog visible={deleteModalVisible} onDismiss={() => setDeleteModalVisible(false)}>
         <Dialog.Title>{t('confirmDelete')}</Dialog.Title>
         <Dialog.Content>
-          <Text style={styles.modalText}>
+          <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, marginBottom: spacing.lg }}>
             Tem certeza que deseja excluir este boleto?
           </Text>
         </Dialog.Content>
         <Dialog.Actions>
           <PaperButton onPress={() => setDeleteModalVisible(false)}>{t('cancel')}</PaperButton>
-          <PaperButton onPress={confirmDelete} textColor="#F44336">
+          <PaperButton onPress={confirmDelete} textColor={colors.error}>
             {t('delete')}
           </PaperButton>
         </Dialog.Actions>
@@ -245,95 +254,3 @@ export default function DashboardScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  scanButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  filters: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  dateFilters: {
-    marginBottom: 12,
-  },
-  dateFilterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#fff',
-    marginRight: 8,
-  },
-  dateFilterButtonActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
-  },
-  dateFilterButtonText: {
-    fontSize: 14,
-    color: '#111827',
-    fontWeight: '500',
-  },
-  dateFilterButtonTextActive: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  filterRow: {
-    marginTop: 8,
-  },
-  dateRangeRow: {
-    marginTop: 8,
-  },
-  list: {
-    paddingVertical: 8,
-  },
-  empty: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#757575',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#757575',
-    marginBottom: 16,
-  },
-});

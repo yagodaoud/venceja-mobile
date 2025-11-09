@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import { X } from 'lucide-react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import Toast from 'react-native-toast-message';
 import CategoryPicker from './CategoryPicker';
 import { useModalStore } from '@/store/modalStore';
+import { modalStyles, commonStyles, colors } from '@/styles';
 
 interface BoletoModalProps {
   boleto?: Boleto | null;
@@ -196,43 +197,45 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
       presentationStyle="overFullScreen"
       statusBarTranslucent
     >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.modal}>
+          <View style={modalStyles.header}>
+            <Text style={modalStyles.title}>
               {isEditMode ? 'Editar Boleto' : 'Criar Boleto'}
             </Text>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color="#757575" />
+            <TouchableOpacity onPress={handleClose} style={modalStyles.closeButton}>
+              <X size={24} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            <View style={styles.field}>
-              <Text style={styles.label}>Fornecedor *</Text>
+          <ScrollView style={modalStyles.content} showsVerticalScrollIndicator={false}>
+            <View style={commonStyles.field}>
+              <Text style={commonStyles.label}>Fornecedor *</Text>
               <TextInput
-                style={styles.input}
+                style={commonStyles.input}
                 placeholder="Nome do fornecedor"
                 value={fornecedor}
                 onChangeText={setFornecedor}
                 autoCapitalize="words"
+                placeholderTextColor={colors.text.lighter}
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Valor *</Text>
+            <View style={commonStyles.field}>
+              <Text style={commonStyles.label}>Valor *</Text>
               <TextInput
-                style={styles.input}
+                style={commonStyles.input}
                 placeholder="0,00"
                 value={valor}
                 onChangeText={handleValorChange}
                 onBlur={handleValorBlur}
                 keyboardType="numeric"
+                placeholderTextColor={colors.text.lighter}
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Vencimento *</Text>
+            <View style={commonStyles.field}>
+              <Text style={commonStyles.label}>Vencimento *</Text>
               <SingleDatePicker
                 date={vencimento}
                 onDateChange={setVencimento}
@@ -240,19 +243,20 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Código de Barras (opcional)</Text>
+            <View style={commonStyles.field}>
+              <Text style={commonStyles.label}>Código de Barras (opcional)</Text>
               <TextInput
-                style={styles.input}
+                style={commonStyles.input}
                 placeholder="Código de barras"
                 value={codigoBarras}
                 onChangeText={setCodigoBarras}
                 keyboardType="numeric"
+                placeholderTextColor={colors.text.lighter}
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Categoria (opcional)</Text>
+            <View style={commonStyles.field}>
+              <Text style={commonStyles.label}>Categoria (opcional)</Text>
               <CategoryPicker
                 categories={categories}
                 selectedId={categoriaId}
@@ -262,23 +266,27 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
             </View>
           </ScrollView>
 
-          <View style={styles.actions}>
+          <View style={modalStyles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+              style={[modalStyles.actionButton, modalStyles.actionButtonCancel]}
               onPress={handleClose}
               disabled={isSubmitting}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={modalStyles.actionButtonTextCancel}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              style={[
+                modalStyles.actionButton,
+                modalStyles.actionButtonPrimary,
+                isSubmitting && modalStyles.actionButtonDisabled
+              ]}
               onPress={handleSubmit}
               disabled={isSubmitting || !fornecedor.trim() || !valor || !vencimento}
             >
               {isSubmitting ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.text.white} />
               ) : (
-                <Text style={styles.submitButtonText}>Salvar</Text>
+                <Text style={modalStyles.actionButtonTextPrimary}>Salvar</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -288,92 +296,4 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#212121',
-  },
-  content: {
-    maxHeight: 500,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#111827',
-    backgroundColor: '#fff',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: '#757575',
-    backgroundColor: '#fff',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#757575',
-  },
-  submitButton: {
-    backgroundColor: '#4CAF50',
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});
 
