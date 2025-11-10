@@ -268,7 +268,6 @@ export const modalStyles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: borderRadius.md,
-    resizeMode: 'cover',
   },
 
   removeImageButton: {

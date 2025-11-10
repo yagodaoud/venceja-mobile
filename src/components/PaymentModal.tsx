@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, Image } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Image, ImageStyle } from 'react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { Camera, Image as ImageIcon, X } from 'lucide-react-native';
 import { Button } from 'react-native-paper';
 import { useModalStore } from '@/store/modalStore';
 import { modalStyles, colors, spacing } from '@/styles';
+import { formatCurrency } from '@/lib/utils';
 
 interface PaymentModalProps {
   visible: boolean;
@@ -61,7 +62,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
 
   const handleMarkPaid = () => {
     if (!boleto) return;
-    
+
     markPaid(
       { id: boleto.id, comprovanteUri: comprovanteUri || undefined },
       {
@@ -81,10 +82,10 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
   if (!boleto) return null;
 
   return (
-    <Modal 
-      visible={visible} 
-      transparent 
-      animationType="slide" 
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
       onRequestClose={handleClose}
       presentationStyle="overFullScreen"
       statusBarTranslucent
@@ -100,7 +101,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
 
           <View style={modalStyles.contentScroll}>
             <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, marginBottom: spacing.sm }}>
-              {boleto.fornecedor} - {t('value')}: R$ {boleto.valor.toFixed(2)}
+              {boleto.fornecedor} - {t('value')}: {formatCurrency(boleto.valor)}
             </Text>
 
             <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary, marginTop: spacing.sm }}>
@@ -109,7 +110,11 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
 
             {comprovanteUri ? (
               <View style={modalStyles.imageContainer}>
-                <Image source={{ uri: comprovanteUri }} style={modalStyles.image} />
+                <Image
+                  source={{ uri: comprovanteUri }}
+                  style={modalStyles.image as ImageStyle}
+                  resizeMode="cover"
+                />
                 <TouchableOpacity
                   style={modalStyles.removeImageButton}
                   onPress={() => setComprovanteUri(null)}
@@ -135,6 +140,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
                 mode="outlined"
                 onPress={handleClose}
                 style={{ flex: 1, borderColor: colors.text.tertiary }}
+                textColor={colors.text.secondary}
                 disabled={isMarkingPaid}
               >
                 {t('cancel')}
@@ -143,6 +149,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
                 mode="contained"
                 onPress={handleMarkPaid}
                 style={{ flex: 1, backgroundColor: colors.primary }}
+                textColor={colors.text.white}
                 loading={isMarkingPaid}
                 disabled={isMarkingPaid}
               >

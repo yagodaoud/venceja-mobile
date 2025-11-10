@@ -19,9 +19,11 @@ import {
 } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Swipeable } from 'react-native-gesture-handler';
-import { Edit, Trash2, Clock, Circle, X, Calendar, FileText } from 'lucide-react-native';
+import { Edit, Trash2, Clock, Circle, X, Calendar, FileText, Copy } from 'lucide-react-native';
 import ComprovantePreview from './ComprovantePreview';
 import * as Haptics from 'expo-haptics';
+import * as Clipboard from 'expo-clipboard';
+import Toast from 'react-native-toast-message';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -66,6 +68,24 @@ export default function BoletoCard({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Open edit modal directly when card is clicked
     onEdit();
+  };
+
+  const handleCopyBarcode = async () => {
+    if (!boleto.codigoBarras) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro',
+        text2: 'Código de barras não disponível',
+      });
+      return;
+    }
+    await Clipboard.setStringAsync(boleto.codigoBarras);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Toast.show({
+      type: 'success',
+      text1: 'Copiado!',
+      text2: 'Código de barras copiado para a área de transferência',
+    });
   };
 
   const handleCloseModal = () => {
@@ -136,8 +156,17 @@ export default function BoletoCard({
           onPress={handleCardPress}
           activeOpacity={0.7}
         >
-          {/* Top Row: Fornecedor and Status */}
+          {/* Top Row: Copy Button, Fornecedor and Status */}
           <View style={styles.topRow}>
+            <TouchableOpacity
+              style={styles.copyButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleCopyBarcode();
+              }}
+            >
+              <Copy size={18} color={colors.text.secondary} />
+            </TouchableOpacity>
             <Text style={styles.fornecedorText}>{boleto.fornecedor}</Text>
             <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
               {getStatusIcon()}
@@ -164,19 +193,21 @@ export default function BoletoCard({
           </Animated.View>
 
           {/* Action Button - Pay or View Receipt */}
-          {status === 'PAGO' && boleto.comprovanteUrl ? (
-            <TouchableOpacity
-              style={styles.receiptButton}
-              onPress={(e) => {
-                e.stopPropagation();
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setShowComprovantePreview(true);
-              }}
-            >
-              <FileText size={16} color={colors.text.white} style={{ marginRight: 4 }} />
-              <Text style={styles.receiptButtonText}>Ver Comprovante</Text>
-            </TouchableOpacity>
-          ) : (status === 'PENDENTE' || status === 'VENCIDO') ? (
+          {status === 'PAGO' ? (
+            boleto.comprovanteUrl ? (
+              <TouchableOpacity
+                style={styles.receiptButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setShowComprovantePreview(true);
+                }}
+              >
+                <FileText size={16} color={colors.text.white} style={{ marginRight: 4 }} />
+                <Text style={styles.receiptButtonText}>Ver Comprovante</Text>
+              </TouchableOpacity>
+            ) : null
+          ) : (
             <TouchableOpacity
               style={styles.payButton}
               onPress={(e) => {
@@ -187,7 +218,7 @@ export default function BoletoCard({
             >
               <Text style={styles.payButtonText}>Pagar</Text>
             </TouchableOpacity>
-          ) : null}
+          )}
         </TouchableOpacity>
       </Swipeable>
 
@@ -346,6 +377,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  copyButton: {
+    padding: spacing.xs,
+    marginRight: spacing.xs,
+  },
   fornecedorText: {
     fontSize: spacing.xl,
     fontWeight: '600',
@@ -385,7 +420,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   vencimento: {
-    fontSize: spacing.md,
+    fontSize: spacing.lg,
     color: colors.text.light,
     fontStyle: 'italic',
     textAlign: 'center',
