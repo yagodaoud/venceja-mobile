@@ -84,6 +84,7 @@ const resources = {
 
       // Settings
       settings: 'Configurações',
+      cadastros: 'Cadastros',
       changePassword: 'Alterar Senha',
       currentPassword: 'Senha Atual',
       newPassword: 'Nova Senha',

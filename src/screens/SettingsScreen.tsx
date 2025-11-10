@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +27,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation();
   const { user } = useAuthStore();
   const { logout } = useAuth();
   const colorScheme = useColorScheme();
@@ -111,6 +113,17 @@ export default function SettingsScreen() {
             onPress={() => setCnpjModalVisible(true)}
           >
             <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('updateCNPJ')}</Text>
+            <Text style={{ fontSize: spacing.xxl, color: colors.text.tertiary }}>→</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.sectionTitle}>{t('cadastros')}</Text>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}
+            onPress={() => navigation.navigate('Categories' as never)}
+          >
+            <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('categories')}</Text>
             <Text style={{ fontSize: spacing.xxl, color: colors.text.tertiary }}>→</Text>
           </TouchableOpacity>
         </View>
