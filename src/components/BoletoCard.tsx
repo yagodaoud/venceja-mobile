@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   fornecedorText: {
-    fontSize: spacing.md,
+    fontSize: spacing.xl,
     fontWeight: '600',
     color: colors.text.secondary,
     flex: 1,
