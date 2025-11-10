@@ -3,65 +3,76 @@ import { View, Text, ScrollView, TouchableOpacity, Dimensions, Share } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency, getDateRange } from '@/lib/utils';
+import { formatCurrency, DateRange, getCurrentMonthRange, getLastMonthRange, getLast3MonthsRange, getCurrentBimestreRange, areDateRangesEqual, toDDMMYYYY, calculateStatus } from '@/lib/utils';
 import { PieChart } from 'react-native-chart-kit';
-import { Calendar, Download } from 'lucide-react-native';
-import { BoletoStatus } from '@/types';
-import { calculateStatus } from '@/lib/utils';
+import { Download, Calendar as CalendarIcon } from 'lucide-react-native';
+import { DateRangePicker } from '@/components/DatePicker';
 import { commonStyles, colors, spacing, shadows } from '@/styles';
 
 const screenWidth = Dimensions.get('window').width;
 
+// Chart colors matching web version
+const CHART_COLORS = ['#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0', '#00BCD4', '#795548', '#607D8B', '#E91E63', '#009688'];
+
 export default function ReportsScreen() {
   const { t } = useTranslation();
-  const [dateRange, setDateRange] = useState<'este-mes' | 'ultimos-3-meses' | 'este-ano'>('este-mes');
-  const range = getDateRange(dateRange);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(getCurrentMonthRange());
 
   const { boletos } = useBoletos({
-    dataInicio: range.inicio,
-    dataFim: range.fim,
+    dataInicio: dateRange?.from ? toDDMMYYYY(dateRange.from) : undefined,
+    dataFim: dateRange?.to ? toDDMMYYYY(dateRange.to) : undefined,
     size: 1000,
   });
 
+  // Calculate totals using status directly from boleto (with fallback to calculateStatus)
   const totalPago = boletos
-    .filter((b) => calculateStatus(b) === 'PAGO')
+    .filter((b) => (b.status || calculateStatus(b)) === 'PAGO')
     .reduce((sum, b) => sum + b.valor, 0);
 
   const totalPendente = boletos
-    .filter((b) => calculateStatus(b) === 'PENDENTE')
+    .filter((b) => (b.status || calculateStatus(b)) === 'PENDENTE')
     .reduce((sum, b) => sum + b.valor, 0);
 
-  const totalVencido = boletos
-    .filter((b) => calculateStatus(b) === 'VENCIDO')
-    .reduce((sum, b) => sum + b.valor, 0);
-
-  // Category data for pie chart (top 5)
-  const categoryMap = new Map<string, number>();
-  boletos.forEach((b) => {
-    if (b.categoria) {
-      const current = categoryMap.get(b.categoria.nome) || 0;
-      categoryMap.set(b.categoria.nome, current + b.valor);
+  // Group by category - ALL categories (not just top 5)
+  const categoryDataMap = boletos.reduce((acc: Record<string, number>, boleto) => {
+    const category = boleto.categoria?.nome || 'Sem categoria';
+    if (!acc[category]) {
+      acc[category] = 0;
     }
-  });
+    acc[category] += boleto.valor;
+    return acc;
+  }, {});
 
-  const categoryData = Array.from(categoryMap.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([name, value], index) => ({
-      name,
-      value,
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-      legendFontColor: '#757575',
-      legendFontSize: 12,
-    }));
+  // Calculate total for percentage calculation
+  const totalValue = Object.values(categoryDataMap).reduce((sum, value) => sum + value, 0);
+
+  // Convert to chart data format with consistent colors and formatted labels
+  const chartData = Object.entries(categoryDataMap)
+    .map(([categoryName, value], index) => {
+      // Store category name and formatted amount separately for custom legend
+      const cleanCategoryName = categoryName.trim();
+      const formattedAmount = formatCurrency(value);
+      const percentage = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0.0';
+      return {
+        name: '', // Empty name for chart (we'll use custom legend)
+        categoryName: cleanCategoryName,
+        formattedAmount: formattedAmount,
+        percentage: percentage,
+        value,
+        color: CHART_COLORS[index % CHART_COLORS.length],
+        legendFontColor: colors.text.tertiary,
+        legendFontSize: 12,
+      };
+    })
+    .sort((a, b) => b.value - a.value); // Sort by value descending
 
   const handleExportCSV = async () => {
     const headers = ['Fornecedor', 'Valor', 'Vencimento', 'Status', 'Categoria'];
     const rows = boletos.map((b) => [
       b.fornecedor,
-      b.valor.toString(),
+      formatCurrency(b.valor),
       b.vencimento,
-      calculateStatus(b),
+      b.status || calculateStatus(b),
       b.categoria?.nome || '',
     ]);
 
@@ -78,68 +89,126 @@ export default function ReportsScreen() {
   };
 
   return (
-    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+    <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: colors.background.primary }]} edges={['top']}>
       <View style={commonStyles.screenHeader}>
-        <Text style={commonStyles.screenTitle}>{t('reports')}</Text>
-        <TouchableOpacity onPress={handleExportCSV}>
-          <Download size={24} color={colors.primary} />
+        <View>
+          <Text style={commonStyles.screenTitle}>{t('reports')}</Text>
+          <Text style={commonStyles.screenSubtitle}>Visualize estatísticas e exporte dados</Text>
+        </View>
+        <TouchableOpacity
+          onPress={handleExportCSV}
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            backgroundColor: colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            ...shadows.md,
+          }}
+        >
+          <Download size={24} color={colors.text.white} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={commonStyles.screenContent} showsVerticalScrollIndicator={false}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md }}>
-          <Calendar size={20} color={colors.primary} />
-          <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary }}>
-            {t('dateRange')}
-          </Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.xxl }}>
-          <TouchableOpacity
-            style={[
-              { flex: 1, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: spacing.sm, backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-              dateRange === 'este-mes' && { backgroundColor: colors.primary, borderColor: colors.primary }
-            ]}
-            onPress={() => setDateRange('este-mes')}
-          >
-            <Text style={[
-              { fontSize: spacing.md, color: colors.text.tertiary, fontWeight: '600' },
-              dateRange === 'este-mes' && { color: colors.text.white }
-            ]}>
-              {t('thisMonth')}
+      <ScrollView
+        style={[commonStyles.screenContent, { backgroundColor: colors.background.primary }]}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing.xxl }}
+      >
+        {/* Date Range Filter Section */}
+        <View style={{ marginBottom: spacing.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md }}>
+            <CalendarIcon size={20} color={colors.primary} />
+            <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary }}>
+              {t('filter') || 'Filtrar'}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              { flex: 1, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: spacing.sm, backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-              dateRange === 'ultimos-3-meses' && { backgroundColor: colors.primary, borderColor: colors.primary }
-            ]}
-            onPress={() => setDateRange('ultimos-3-meses')}
-          >
-            <Text style={[
-              { fontSize: spacing.md, color: colors.text.tertiary, fontWeight: '600' },
-              dateRange === 'ultimos-3-meses' && { color: colors.text.white }
-            ]}>
-              {t('last3Months')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              { flex: 1, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: spacing.sm, backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-              dateRange === 'este-ano' && { backgroundColor: colors.primary, borderColor: colors.primary }
-            ]}
-            onPress={() => setDateRange('este-ano')}
-          >
-            <Text style={[
-              { fontSize: spacing.md, color: colors.text.tertiary, fontWeight: '600' },
-              dateRange === 'este-ano' && { color: colors.text.white }
-            ]}>
-              {t('thisYear')}
-            </Text>
-          </TouchableOpacity>
+          </View>
+
+          {/* Preset date range buttons */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+            <TouchableOpacity
+              style={[
+                commonStyles.filterButton,
+                areDateRangesEqual(dateRange, getCurrentMonthRange()) && commonStyles.filterButtonActive
+              ]}
+              onPress={() => setDateRange(getCurrentMonthRange())}
+            >
+              <Text style={[
+                commonStyles.filterButtonText,
+                areDateRangesEqual(dateRange, getCurrentMonthRange()) && commonStyles.filterButtonTextActive
+              ]}>
+                Este Mês
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                commonStyles.filterButton,
+                areDateRangesEqual(dateRange, getLastMonthRange()) && commonStyles.filterButtonActive
+              ]}
+              onPress={() => setDateRange(getLastMonthRange())}
+            >
+              <Text style={[
+                commonStyles.filterButtonText,
+                areDateRangesEqual(dateRange, getLastMonthRange()) && commonStyles.filterButtonTextActive
+              ]}>
+                Último Mês
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                commonStyles.filterButton,
+                areDateRangesEqual(dateRange, getLast3MonthsRange()) && commonStyles.filterButtonActive
+              ]}
+              onPress={() => setDateRange(getLast3MonthsRange())}
+            >
+              <Text style={[
+                commonStyles.filterButtonText,
+                areDateRangesEqual(dateRange, getLast3MonthsRange()) && commonStyles.filterButtonTextActive
+              ]}>
+                Últimos 3 Meses
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                commonStyles.filterButton,
+                areDateRangesEqual(dateRange, getCurrentBimestreRange()) && commonStyles.filterButtonActive
+              ]}
+              onPress={() => setDateRange(getCurrentBimestreRange())}
+            >
+              <Text style={[
+                commonStyles.filterButtonText,
+                areDateRangesEqual(dateRange, getCurrentBimestreRange()) && commonStyles.filterButtonTextActive
+              ]}>
+                Bimestre Atual
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                commonStyles.filterButton,
+                !dateRange && commonStyles.filterButtonActive
+              ]}
+              onPress={() => setDateRange(undefined)}
+            >
+              <Text style={[
+                commonStyles.filterButtonText,
+                !dateRange && commonStyles.filterButtonTextActive
+              ]}>
+                Todos os Períodos
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+
+          {/* Custom Date Range Picker */}
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
         </View>
 
+        {/* Summary Cards */}
         <View style={{ flexDirection: 'row', gap: spacing.md, marginBottom: spacing.xxl }}>
-          <View style={[commonStyles.card, { marginHorizontal: 0, alignItems: 'center' }]}>
+          <View style={[commonStyles.card, { flex: 1, marginHorizontal: 0, alignItems: 'center' }]}>
             <Text style={{ fontSize: spacing.sm, color: colors.text.tertiary, marginBottom: spacing.sm }}>
               {t('totalPaid')}
             </Text>
@@ -147,7 +216,7 @@ export default function ReportsScreen() {
               {formatCurrency(totalPago)}
             </Text>
           </View>
-          <View style={[commonStyles.card, { marginHorizontal: 0, alignItems: 'center' }]}>
+          <View style={[commonStyles.card, { flex: 1, marginHorizontal: 0, alignItems: 'center' }]}>
             <Text style={{ fontSize: spacing.sm, color: colors.text.tertiary, marginBottom: spacing.sm }}>
               {t('totalPending')}
             </Text>
@@ -155,33 +224,56 @@ export default function ReportsScreen() {
               {formatCurrency(totalPendente)}
             </Text>
           </View>
-          <View style={[commonStyles.card, { marginHorizontal: 0, alignItems: 'center' }]}>
-            <Text style={{ fontSize: spacing.sm, color: colors.text.tertiary, marginBottom: spacing.sm }}>
-              {t('totalExpired')}
-            </Text>
-            <Text style={{ fontSize: spacing.xl, fontWeight: '700', color: colors.status.vencido }}>
-              {formatCurrency(totalVencido)}
-            </Text>
-          </View>
         </View>
 
-        {categoryData.length > 0 && (
+        {/* Pie Chart */}
+        {chartData.length > 0 ? (
           <View style={[commonStyles.card, { marginHorizontal: 0, marginBottom: spacing.xxl }]}>
-            <Text style={{ fontSize: spacing.xl, fontWeight: '700', color: colors.text.primary, marginBottom: spacing.lg }}>
-              {t('byCategory')}
+            <Text style={{ fontSize: spacing.xl, fontWeight: '700', color: colors.text.primary, marginBottom: spacing.xs }}>
+              {t('byCategoryExpenses') || 'Gasto por Categoria'}
             </Text>
-            <PieChart
-              data={categoryData}
-              width={screenWidth - 32}
-              height={220}
-              chartConfig={{
-                color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
-              }}
-              accessor="value"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-            />
+            <Text style={{ fontSize: spacing.md, color: colors.text.tertiary, marginBottom: spacing.lg }}>
+              {t('distributionOfExpensesByCategory') || 'Distribuição de gastos por categoria'}
+            </Text>
+            {/* Chart Container - Aligned to the right, no side legends */}
+            <View style={{ width: '100%', marginLeft: 0, marginRight: -spacing.lg, paddingRight: spacing.lg }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
+                <PieChart
+                  data={chartData.map(item => ({ ...item, name: '' }))}
+                  width={Math.min(screenWidth - (spacing.lg * 4), 280)}
+                  height={220}
+                  chartConfig={{
+                    color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+                  }}
+                  accessor="value"
+                  backgroundColor="transparent"
+                  paddingLeft="60"
+                  hasLegend={false}
+                />
+              </View>
+            </View>
+            {/* Custom Legend - Centered */}
+            <View style={{ marginTop: spacing.lg, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-start', gap: spacing.md, paddingHorizontal: spacing.sm }}>
+              {chartData.map((item, index) => (
+                <View key={index} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.sm, width: '45%', maxWidth: 200 }}>
+                  <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: item.color, marginRight: spacing.sm, marginTop: 2, flexShrink: 0 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: spacing.md, color: colors.text.secondary, fontWeight: '500' }}>
+                      {item.categoryName} - {item.percentage}%
+                    </Text>
+                    <Text style={{ fontSize: spacing.md, color: colors.text.tertiary, marginTop: 2, fontWeight: '600' }}>
+                      {item.formattedAmount}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={[commonStyles.card, { marginHorizontal: 0, padding: spacing.xxl, alignItems: 'center' }]}>
+            <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary }}>
+              Nenhum dado disponível
+            </Text>
           </View>
         )}
       </ScrollView>

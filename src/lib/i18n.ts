@@ -78,6 +78,9 @@ const resources = {
       thisMonth: 'Este Mês',
       last3Months: 'Últimos 3 Meses',
       thisYear: 'Este Ano',
+      distributionOfExpensesByCategory: 'Distribuição de gastos por categoria',
+      byCategoryExpenses: 'Gasto por Categoria',
+      filter: 'Filtrar',
 
       // Settings
       settings: 'Configurações',
@@ -90,6 +93,7 @@ const resources = {
       logout: 'Sair',
       passwordUpdated: 'Senha atualizada com sucesso',
       cnpjUpdated: 'CNPJ atualizado com sucesso',
+
 
       // Common
       edit: 'Editar',
