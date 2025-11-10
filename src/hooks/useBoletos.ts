@@ -3,47 +3,6 @@ import { apiClient } from '@/lib/api';
 import { Boleto, BoletoFilters, CreateBoletoRequest, UpdateBoletoRequest } from '@/types';
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
-import { calculateStatus } from '@/lib/utils';
-
-// Dummy data for offline testing
-const dummyBoletos: Boleto[] = [
-  {
-    id: 1,
-    userId: 1,
-    fornecedor: 'Fornecedor Exemplo 1',
-    valor: 1500.50,
-    vencimento: new Date().toISOString(),
-    status: 'PENDENTE',
-    categoria: null,
-    semComprovante: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    userId: 1,
-    fornecedor: 'Fornecedor Exemplo 2',
-    valor: 2300.75,
-    vencimento: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-    status: 'VENCIDO',
-    categoria: null,
-    semComprovante: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    userId: 1,
-    fornecedor: 'Fornecedor Exemplo 3',
-    valor: 850.00,
-    vencimento: new Date(Date.now() + 86400000 * 5).toISOString(), // 5 days from now
-    status: 'PAGO',
-    categoria: null,
-    semComprovante: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 export const useBoletos = (filters?: BoletoFilters) => {
   const { t } = useTranslation();
@@ -53,17 +12,7 @@ export const useBoletos = (filters?: BoletoFilters) => {
     queryKey: ['boletos', filters],
     queryFn: () => apiClient.getBoletos(filters),
     staleTime: 30000, // 30 seconds
-    // Use dummy data if offline/error
-    retry: false,
-    placeholderData: {
-      data: dummyBoletos.map(b => ({ ...b, status: calculateStatus(b) })),
-      meta: {
-        page: 0,
-        size: 10,
-        total: dummyBoletos.length,
-        totalPages: 1,
-      },
-    },
+    retry: 1,
   });
 
   const createMutation = useMutation({

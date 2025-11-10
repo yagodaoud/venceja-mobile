@@ -10,6 +10,7 @@ import StatusDropdown from '@/components/StatusDropdown';
 import { DateRangePicker } from '@/components/DatePicker';
 import BoletoModal from '@/components/BoletoModal';
 import AddBoletoModal from '@/components/AddBoletoModal';
+import { BoletoCardSkeleton } from '@/components/Skeleton';
 import { Plus, Filter, Calendar as CalendarIcon } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DateRange, getCurrentMonthRange, getLastMonthRange, getLast3MonthsRange, getCurrentBimestreRange, areDateRangesEqual, toDDMMYYYY, formatDate, getStatusLabel } from '@/lib/utils';
@@ -408,27 +409,38 @@ export default function DashboardScreen() {
         </Animated.View>
       </Animated.View>
 
-      <FlatList
-        ref={flatListRef}
-        data={boletos}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
-        }
-        ListEmptyComponent={
-          <View style={commonStyles.empty}>
-            <Text style={commonStyles.emptyText}>{t('noBoletos')}</Text>
-          </View>
-        }
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading && !boletos.length ? (
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm,
+          }}
+        >
+          <BoletoCardSkeleton count={5} />
+        </ScrollView>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={boletos}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm,
+          }}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+          }
+          ListEmptyComponent={
+            <View style={commonStyles.empty}>
+              <Text style={commonStyles.emptyText}>{t('noBoletos')}</Text>
+            </View>
+          }
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
       <PaymentModal
         visible={paymentModalVisible}

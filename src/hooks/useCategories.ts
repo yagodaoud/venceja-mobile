@@ -4,34 +4,6 @@ import { Categoria, CreateCategoriaRequest, UpdateCategoriaRequest } from '@/typ
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
 
-// Dummy data for offline testing
-const dummyCategorias: Categoria[] = [
-  {
-    id: 1,
-    userId: 1,
-    nome: 'Alimentos',
-    cor: '#A7B758',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    userId: 1,
-    nome: 'Bebidas',
-    cor: '#2196F3',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    userId: 1,
-    nome: 'Limpeza',
-    cor: '#FF9800',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 export const useCategories = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -40,16 +12,7 @@ export const useCategories = () => {
     queryKey: ['categorias'],
     queryFn: () => apiClient.getCategorias(0, 100),
     staleTime: 60000, // 1 minute
-    retry: false,
-    placeholderData: {
-      data: dummyCategorias,
-      meta: {
-        page: 0,
-        size: 100,
-        total: dummyCategorias.length,
-        totalPages: 1,
-      },
-    },
+    retry: 1,
   });
 
   const createMutation = useMutation({

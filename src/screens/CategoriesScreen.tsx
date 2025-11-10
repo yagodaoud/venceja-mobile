@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { commonStyles, colors, spacing, shadows, modalStyles } from '@/styles';
 import { useModalStore } from '@/store/modalStore';
 import ColorPicker from '@/components/ColorPicker';
+import { CategoryCardSkeleton } from '@/components/Skeleton';
 
 const categorySchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -22,7 +23,7 @@ type CategoryFormData = z.infer<typeof categorySchema>;
 
 export default function CategoriesScreen() {
   const { t } = useTranslation();
-  const { categories, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
   const { setModalOpen } = useModalStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -136,20 +137,31 @@ export default function CategoriesScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={categories}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-        ListEmptyComponent={
-          <View style={commonStyles.empty}>
-            <Text style={commonStyles.emptyText}>{t('noCategories')}</Text>
-          </View>
-        }
-      />
+      {isLoading && !categories.length ? (
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm,
+          }}
+        >
+          <CategoryCardSkeleton count={5} />
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={categories}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm,
+          }}
+          ListEmptyComponent={
+            <View style={commonStyles.empty}>
+              <Text style={commonStyles.emptyText}>{t('noCategories')}</Text>
+            </View>
+          }
+        />
+      )}
 
       <Modal
         visible={modalVisible}
