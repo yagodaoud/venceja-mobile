@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon } from 'lucide-react-native';
 import ScanModal from '@/components/ScanModal';
 import { Boleto } from '@/types';
-import { commonStyles, colors, spacing, borderRadius } from '@/styles';
+import { commonStyles, colors, spacing, borderRadius, shadows } from '@/styles';
 
 export default function ScanScreen() {
   const { t } = useTranslation();
@@ -68,59 +68,72 @@ export default function ScanScreen() {
 
   return (
     <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
-      <View style={{ padding: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <Text style={commonStyles.screenTitle}>{t('scanBoleto')}</Text>
+      <View style={commonStyles.screenHeader}>
+        <View>
+          <Text style={commonStyles.screenTitle}>{t('scanBoleto')}</Text>
+          <Text style={commonStyles.screenSubtitle}>Escaneie seu boleto</Text>
+        </View>
       </View>
 
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xxl }}>
-        <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, textAlign: 'center', marginBottom: spacing.xxxxl }}>
-          Escolha uma opção para escanear o boleto
-        </Text>
+      <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: spacing.xxl, paddingTop: spacing.xxxl, paddingBottom: spacing.xxl }}>
+        <View
+          style={{
+            width: '100%',
+            backgroundColor: colors.background.primary,
+            borderRadius: borderRadius.xl,
+            padding: spacing.xxl,
+            ...shadows.md,
+          }}
+        >
+          <Text style={{ fontSize: spacing.lg, color: colors.text.tertiary, textAlign: 'center', marginBottom: spacing.xxxl }}>
+            Escolha uma opção para escanear o boleto
+          </Text>
 
-        <View style={{ width: '100%', gap: spacing.lg }}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: colors.background.secondary,
-              borderRadius: borderRadius.lg,
-              padding: spacing.xxxxl,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 2,
-              borderColor: colors.primary,
-              borderStyle: 'dashed',
-            }}
-            onPress={handleTakePhoto}
-            disabled={isScanning}
-          >
-            <Camera size={48} color={colors.primary} />
-            <Text style={{ marginTop: spacing.md, fontSize: spacing.lg, fontWeight: '600', color: colors.primary }}>
-              {t('takePhoto')}
-            </Text>
-          </TouchableOpacity>
+          <View style={{ width: '100%', gap: spacing.lg }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.background.secondary,
+                borderRadius: borderRadius.lg,
+                padding: spacing.xxxxl,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: colors.primary,
+                borderStyle: 'dashed',
+              }}
+              onPress={handleTakePhoto}
+              disabled={isScanning}
+            >
+              <Camera size={48} color={colors.primary} />
+              <Text style={{ marginTop: spacing.md, fontSize: spacing.lg, fontWeight: '600', color: colors.primary }}>
+                {t('takePhoto')}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={{
-              backgroundColor: colors.background.secondary,
-              borderRadius: borderRadius.lg,
-              padding: spacing.xxxxl,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 2,
-              borderColor: colors.primary,
-              borderStyle: 'dashed',
-            }}
-            onPress={handleChooseFromGallery}
-            disabled={isScanning}
-          >
-            <ImageIcon size={48} color={colors.primary} />
-            <Text style={{ marginTop: spacing.md, fontSize: spacing.lg, fontWeight: '600', color: colors.primary }}>
-              {t('chooseFromGallery')}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.background.secondary,
+                borderRadius: borderRadius.lg,
+                padding: spacing.xxxxl,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: colors.primary,
+                borderStyle: 'dashed',
+              }}
+              onPress={handleChooseFromGallery}
+              disabled={isScanning}
+            >
+              <ImageIcon size={48} color={colors.primary} />
+              <Text style={{ marginTop: spacing.md, fontSize: spacing.lg, fontWeight: '600', color: colors.primary }}>
+                {t('chooseFromGallery')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {isScanning && (
-          <View style={{ marginTop: spacing.xxxxl, alignItems: 'center', gap: spacing.md }}>
+          <View style={{ marginTop: spacing.xxxl, alignItems: 'center', gap: spacing.md }}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={{ fontSize: spacing.md, color: colors.text.tertiary }}>{t('scanning')}</Text>
           </View>
