@@ -268,13 +268,6 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
 
           <View style={modalStyles.actions}>
             <TouchableOpacity
-              style={[modalStyles.actionButton, modalStyles.actionButtonCancel]}
-              onPress={handleClose}
-              disabled={isSubmitting}
-            >
-              <Text style={modalStyles.actionButtonTextCancel}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[
                 modalStyles.actionButton,
                 modalStyles.actionButtonPrimary,

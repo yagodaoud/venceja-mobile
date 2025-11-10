@@ -37,6 +37,8 @@ export default function DashboardScreen() {
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
   const scrollY = useSharedValue(0);
   const filterProgress = useSharedValue(1); // 1 = expanded, 0 = collapsed
+  const lastScrollY = useSharedValue(0);
+  const isCollapsedShared = useSharedValue(false);
   const flatListRef = useRef<FlatList>(null);
 
   const filters = {
@@ -89,21 +91,45 @@ export default function DashboardScreen() {
 
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
+    lastScrollY.value = offsetY;
     scrollY.value = offsetY;
 
-    const threshold = 60;
-    const shouldCollapse = offsetY > threshold;
+    // Smooth scroll range - animation happens over 45px of scrolling
+    const scrollRange = 45;
+    // Calculate progress directly from scroll position (1 = fully expanded, 0 = fully collapsed)
+    const rawProgress = Math.max(0, Math.min(1, 1 - (offsetY / scrollRange)));
 
-    if (shouldCollapse !== isFiltersCollapsed) {
-      runOnJS(setIsFiltersCollapsed)(shouldCollapse);
+    // Hysteresis for state changes - prevents jittery behavior
+    // Collapse threshold: when scrolled ~25px (progress ~0.44)
+    // Expand threshold: when scrolled back to ~10px (progress ~0.78)
+    // This makes it collapse earlier and expand earlier for better responsiveness
+    const collapseProgressThreshold = 0.44; // Progress below this = collapsed (offsetY > ~25px)
+    const expandProgressThreshold = 0.78;   // Progress above this = expanded (offsetY < ~10px)
 
-      // Very fast spring animation - optimized for performance
-      filterProgress.value = withSpring(shouldCollapse ? 0 : 1, {
-        damping: 20,
-        stiffness: 200,
-        mass: 0.3,
-      });
+    const currentlyCollapsed = isCollapsedShared.value;
+    let targetCollapsed: boolean;
+
+    if (currentlyCollapsed) {
+      // Currently collapsed - expand if we scroll back up enough (progress increases above threshold)
+      targetCollapsed = rawProgress < expandProgressThreshold;
+    } else {
+      // Currently expanded - collapse if we scroll down enough (progress decreases below threshold)
+      targetCollapsed = rawProgress < collapseProgressThreshold;
     }
+
+    // Update shared value and JS state for pointer events (only when crossing the threshold)
+    if (targetCollapsed !== currentlyCollapsed) {
+      isCollapsedShared.value = targetCollapsed;
+      runOnJS(setIsFiltersCollapsed)(targetCollapsed);
+    }
+
+    // Update progress smoothly - use direct assignment for immediate response, spring for smoothness
+    // Use a faster, more responsive spring animation
+    filterProgress.value = withSpring(rawProgress, {
+      damping: 25,
+      stiffness: 250,
+      mass: 0.3,
+    });
   };
 
   const getDateRangeDisplayText = (): string => {
@@ -131,6 +157,7 @@ export default function DashboardScreen() {
 
   const expandFilters = () => {
     setIsFiltersCollapsed(false);
+    isCollapsedShared.value = false;
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
 
     // Very fast spring animation
@@ -159,19 +186,19 @@ export default function DashboardScreen() {
   // Animated style for the filter container - animates height to collapse
   const filterContainerStyle = useAnimatedStyle(() => {
     // When collapsed (filterProgress = 0), height should be just the collapsed bar height
-    // When expanded (filterProgress = 1), height should be auto (large enough for content)
+    // When expanded (filterProgress = 1), height should match actual content
     // Collapsed bar height: paddingVertical (12*2) + button minHeight (48) = ~72px
     const collapsedHeight = 72;
-    // Estimate expanded height: padding (16*2) + scrollview (~50) + status dropdown (~60) + date picker (~60) + margins = ~250px
-    const expandedHeight = 280;
-    
+    // Expanded height: padding (16*2) + scrollview (~55) + margins (8+8) + status dropdown (~52) + date picker (~52) = ~207px
+    const expandedHeight = 180;
+
     const height = interpolate(
       filterProgress.value,
       [0, 1],
       [collapsedHeight, expandedHeight],
       Extrapolate.CLAMP
     );
-    
+
     return {
       height,
     };

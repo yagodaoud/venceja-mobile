@@ -74,12 +74,6 @@ export default function AddBoletoModal({ visible, onClose, onScan, onCreateManua
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={modalStyles.actionButtonCancel}
-            onPress={onClose}
-          >
-            <Text style={modalStyles.actionButtonTextCancel}>Cancelar</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
