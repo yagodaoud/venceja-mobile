@@ -258,11 +258,11 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   daySelected: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#A7B758',
     borderRadius: 8,
   },
   dayInRange: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F0F4E0', // Light olive green to match primary theme
   },
   dayStart: {
     borderTopLeftRadius: 8,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
   },
   confirmButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#A7B758',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

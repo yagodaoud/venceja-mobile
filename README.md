@@ -149,10 +149,10 @@ A aplicação inclui dados dummy para testes offline:
 
 ## 🎨 Design System
 
-- **Cor Primária**: #4CAF50 (Verde)
+- **Cor Primária**: #A7B758 (Olive Green)
 - **Status Pendente**: #FF9800 (Laranja)
 - **Status Vencido**: #F44336 (Vermelho)
-- **Status Pago**: #4CAF50 (Verde)
+- **Status Pago**: #A7B758 (Olive Green)
 - **Fonte**: Roboto (sistema)
 
 ## 🔒 Segurança

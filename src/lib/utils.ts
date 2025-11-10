@@ -119,7 +119,7 @@ export const calculateStatus = (boleto: Boleto): BoletoStatus => {
 export const getStatusColor = (status: BoletoStatus): string => {
   switch (status) {
     case 'PAGO':
-      return '#4CAF50';
+      return '#A7B758';
     case 'VENCIDO':
       return '#F44336';
     case 'PENDENTE':

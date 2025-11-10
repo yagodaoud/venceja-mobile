@@ -10,7 +10,7 @@ const dummyCategorias: Categoria[] = [
     id: 1,
     userId: 1,
     nome: 'Alimentos',
-    cor: '#4CAF50',
+    cor: '#A7B758',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

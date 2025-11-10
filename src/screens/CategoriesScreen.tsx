@@ -39,13 +39,13 @@ export default function CategoriesScreen() {
     resolver: zodResolver(categorySchema),
     defaultValues: {
       nome: '',
-      cor: '#4CAF50',
+      cor: '#A7B758',
     },
   });
 
   const handleCreate = () => {
     setEditingCategory(null);
-    reset({ nome: '', cor: '#4CAF50' });
+    reset({ nome: '', cor: '#A7B758' });
     setModalVisible(true);
   };
 

@@ -9,7 +9,7 @@ interface ColorPickerProps {
 
 // Pretty color palette
 const colorPalette = [
-  '#4CAF50', // Green
+  '#A7B758', // Olive Green
   '#2196F3', // Blue
   '#FF9800', // Orange
   '#F44336', // Red

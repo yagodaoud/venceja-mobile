@@ -22,9 +22,9 @@ module.exports = {
           foreground: 'hsl(222.2, 84%, 4.9%)',
         },
 
-        // VenceJá Primary Green (#4CAF50)
+        // VenceJá Primary Olive Green (#A7B758) - Corrected HSL for accurate olive tone
         primary: {
-          DEFAULT: 'hsl(122, 39%, 49%)',
+          DEFAULT: 'hsl(70, 40%, 53%)',
           foreground: 'hsl(0, 0%, 100%)',
         },
 
@@ -49,19 +49,19 @@ module.exports = {
           foreground: 'hsl(210, 40%, 98%)',
         },
 
-        // Status colors for boletos
-        success: 'hsl(122, 39%, 49%)',
+        // Status colors for boletos - Aligned with primary for olive green success
+        success: 'hsl(70, 40%, 53%)',
         warning: 'hsl(25, 95%, 53%)',
         danger: 'hsl(0, 84.2%, 60.2%)',
 
         border: 'hsl(214.3, 31.8%, 91.4%)',
         input: 'hsl(214.3, 31.8%, 91.4%)',
-        ring: 'hsl(122, 39%, 49%)',
+        ring: 'hsl(70, 40%, 53%)', // Updated to match primary olive green
 
         // Legacy status colors (for backward compatibility)
         'status-pendente': 'hsl(25, 95%, 53%)',
         'status-vencido': 'hsl(0, 84.2%, 60.2%)',
-        'status-pago': 'hsl(122, 39%, 49%)',
+        'status-pago': 'hsl(70, 40%, 53%)',
       },
       borderRadius: {
         lg: '0.75rem',

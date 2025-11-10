@@ -4,12 +4,12 @@
  */
 
 export const colors = {
-  // Primary colors
-  primary: '#4CAF50',
-  primaryDark: '#388E3C',
-  primaryLight: '#66BB6A',
-  primaryLighter: '#81C784',
-  primaryLightest: '#E8F5E8',
+  // Primary colors - VenceJá Primary Olive Green (#A7B758)
+  primary: '#A7B758',
+  primaryDark: '#8FA048',
+  primaryLight: '#B5C46A',
+  primaryLighter: '#C3D17C',
+  primaryLightest: '#F0F4E0',
 
   // Secondary colors
   secondary: '#2196F3',
@@ -18,14 +18,14 @@ export const colors = {
 
   // Status colors
   status: {
-    pago: '#4CAF50',
+    pago: '#A7B758', // Aligned with primary olive green
     vencido: '#F44336',
     pendente: '#FF9800',
     warning: '#FFC107',
   },
 
   // Semantic colors
-  success: '#4CAF50',
+  success: '#A7B758', // Aligned with primary olive green
   error: '#F44336',
   warning: '#FF9800',
   info: '#2196F3',

@@ -81,7 +81,7 @@ export const shadows = {
     elevation: 4,
   },
   primary: {
-    shadowColor: '#4CAF50',
+    shadowColor: '#A7B758',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

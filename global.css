@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+
+All colors MUST be HSL.
+
+*/
+
 /* VenceJá Design System */
 @layer base {
     :root {
@@ -11,22 +17,26 @@
         --card-foreground: 222.2 84% 4.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 222.2 84% 4.9%;
-        --primary: 122 39% 49%;
+        /* VenceJá Primary Olive Green (#A7B758) - Corrected HSL for accurate olive tone */
+        --primary: 70 40% 53%;
         --primary-foreground: 0 0% 100%;
+        /* VenceJá Secondary - Neutral Slate (professional, versatile) */
         --secondary: 215 16% 47%;
         --secondary-foreground: 0 0% 100%;
         --muted: 210 40% 96.1%;
         --muted-foreground: 215.4 16.3% 46.9%;
+        /* Accent - Subtle slate for interactive elements */
         --accent: 215 20% 65%;
         --accent-foreground: 215 25% 15%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 210 40% 98%;
-        --success: 122 39% 49%;
+        /* Status colors for boletos - Aligned with primary for olive green success */
+        --success: 70 40% 53%;
         --warning: 25 95% 53%;
         --danger: 0 84.2% 60.2%;
         --border: 214.3 31.8% 91.4%;
         --input: 214.3 31.8% 91.4%;
-        --ring: 122 39% 49%;
+        --ring: 70 40% 53%; /* Updated to match primary olive green */
         --radius: 0.75rem;
     }
 }

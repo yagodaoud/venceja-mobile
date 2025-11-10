@@ -23,7 +23,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4CAF50',
+        tabBarActiveTintColor: '#A7B758',
         tabBarInactiveTintColor: '#757575',
         tabBarStyle: isAnyModalOpen
           ? { display: 'none' }

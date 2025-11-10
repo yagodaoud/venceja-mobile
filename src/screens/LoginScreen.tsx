@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxxxxl,
   },
   logoContainer: {
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    backgroundColor: 'rgba(167, 183, 88, 0.1)',
     padding: spacing.xxl,
     borderRadius: borderRadius.xl,
     marginBottom: spacing.xxl,

@@ -155,7 +155,7 @@ export default function AnimatedFilterChips({
       id: 'paid',
       label: 'Pago',
       value: 'PAGO',
-      color: '#4CAF50',
+      color: '#A7B758',
     },
     {
       id: 'date',
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalNextButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#A7B758',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',

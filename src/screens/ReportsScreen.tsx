@@ -12,7 +12,7 @@ import { commonStyles, colors, spacing, shadows } from '@/styles';
 const screenWidth = Dimensions.get('window').width;
 
 // Chart colors matching web version
-const CHART_COLORS = ['#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0', '#00BCD4', '#795548', '#607D8B', '#E91E63', '#009688'];
+const CHART_COLORS = ['#A7B758', '#2196F3', '#FFC107', '#FF5722', '#9C27B0', '#00BCD4', '#795548', '#607D8B', '#E91E63', '#009688'];
 
 export default function ReportsScreen() {
   const { t } = useTranslation();
@@ -243,7 +243,7 @@ export default function ReportsScreen() {
                   width={Math.min(screenWidth - (spacing.lg * 4), 280)}
                   height={220}
                   chartConfig={{
-                    color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+                    color: (opacity = 1) => `rgba(167, 183, 88, ${opacity})`,
                   }}
                   accessor="value"
                   backgroundColor="transparent"
