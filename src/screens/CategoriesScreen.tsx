@@ -9,6 +9,7 @@ import { Dialog, Button } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import ScreenHeader from '@/components/ScreenHeader';
 import { commonStyles, colors, spacing, shadows, modalStyles } from '@/styles';
 import { useModalStore } from '@/store/modalStore';
 import ColorPicker from '@/components/ColorPicker';
@@ -116,26 +117,14 @@ export default function CategoriesScreen() {
 
   return (
     <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
-      <View style={commonStyles.screenHeader}>
-        <View>
-          <Text style={[commonStyles.screenTitle, { marginBottom: spacing.xs }]}>{t('categories')}</Text>
-          <Text style={commonStyles.screenSubtitle}>Organize suas categorias</Text>
-        </View>
-        <TouchableOpacity
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: colors.primary,
-            justifyContent: 'center',
-            alignItems: 'center',
-            ...shadows.md,
-          }}
-          onPress={handleCreate}
-        >
-          <Plus size={24} color={colors.text.white} />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title={t('categories')}
+        subtitle="Organize suas categorias"
+        rightAction={{
+          icon: <Plus size={24} color={colors.text.white} />,
+          onPress: handleCreate,
+        }}
+      />
 
       {isLoading && !categories.length ? (
         <ScrollView

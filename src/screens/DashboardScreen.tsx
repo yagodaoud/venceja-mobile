@@ -15,6 +15,7 @@ import { Plus, Filter, Calendar as CalendarIcon } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DateRange, getCurrentMonthRange, getLastMonthRange, getLast3MonthsRange, getCurrentBimestreRange, areDateRangesEqual, toDDMMYYYY, formatDate, getStatusLabel } from '@/lib/utils';
 import { Dialog, Button as PaperButton } from 'react-native-paper';
+import ScreenHeader from '@/components/ScreenHeader';
 import { commonStyles, colors, spacing, shadows } from '@/styles';
 import Animated, {
   useAnimatedStyle,
@@ -207,26 +208,14 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
-      <View style={commonStyles.screenHeader}>
-        <View>
-          <Text style={[commonStyles.screenTitle, { marginBottom: spacing.xs }]}>Meus Boletos</Text>
-          <Text style={commonStyles.screenSubtitle}>Gerencie seus pagamentos</Text>
-        </View>
-        <TouchableOpacity
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: colors.primary,
-            justifyContent: 'center',
-            alignItems: 'center',
-            ...shadows.md,
-          }}
-          onPress={() => setAddModalVisible(true)}
-        >
-          <Plus size={24} color={colors.text.white} />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="Meus Boletos"
+        subtitle="Gerencie seus pagamentos"
+        rightAction={{
+          icon: <Plus size={24} color={colors.text.white} />,
+          onPress: () => setAddModalVisible(true),
+        }}
+      />
 
       {/* Filter Container - Collapsed or Expanded */}
       <Animated.View

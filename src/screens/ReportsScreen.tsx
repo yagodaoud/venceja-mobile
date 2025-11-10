@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, Share } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Share, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { Download, Calendar as CalendarIcon } from 'lucide-react-native';
 import { DateRangePicker } from '@/components/DatePicker';
 import { ReportsSkeleton } from '@/components/Skeleton';
+import ScreenHeader from '@/components/ScreenHeader';
 import { commonStyles, colors, spacing, shadows } from '@/styles';
 
 const screenWidth = Dimensions.get('window').width;
@@ -19,7 +20,7 @@ export default function ReportsScreen() {
   const { t } = useTranslation();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(getCurrentMonthRange());
 
-  const { boletos, isLoading } = useBoletos({
+  const { boletos, isLoading, refetch } = useBoletos({
     dataInicio: dateRange?.from ? toDDMMYYYY(dateRange.from) : undefined,
     dataFim: dateRange?.to ? toDDMMYYYY(dateRange.to) : undefined,
     size: 1000,
@@ -91,31 +92,22 @@ export default function ReportsScreen() {
 
   return (
     <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: colors.background.primary }]} edges={['top']}>
-      <View style={commonStyles.screenHeader}>
-        <View>
-          <Text style={commonStyles.screenTitle}>{t('reports')}</Text>
-          <Text style={commonStyles.screenSubtitle}>Visualize estatísticas e exporte dados</Text>
-        </View>
-        <TouchableOpacity
-          onPress={handleExportCSV}
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: colors.primary,
-            justifyContent: 'center',
-            alignItems: 'center',
-            ...shadows.md,
-          }}
-        >
-          <Download size={24} color={colors.text.white} />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title={t('reports')}
+        subtitle="Visualize estatísticas e exporte dados"
+        rightAction={{
+          icon: <Download size={24} color={colors.text.white} />,
+          onPress: handleExportCSV,
+        }}
+      />
 
       <ScrollView
         style={[commonStyles.screenContent, { backgroundColor: colors.background.primary }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: spacing.xxl }}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} />
+        }
       >
         {/* Date Range Filter Section */}
         <View style={{ marginBottom: spacing.lg }}>

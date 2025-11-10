@@ -25,11 +25,25 @@ function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: '#A7B758',
         tabBarInactiveTintColor: '#757575',
+        tabBarIconStyle: {
+          marginBottom: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          marginTop: 2,
+          marginBottom: 0,
+        },
+        tabBarItemStyle: {
+          paddingTop: Platform.OS === 'ios' ? 12 : 8,
+          paddingBottom: 0,
+        },
         tabBarStyle: isAnyModalOpen
           ? { display: 'none' }
           : {
-            paddingBottom: Platform.OS === 'ios' ? 20 : 5,
-            height: Platform.OS === 'ios' ? 85 : 60,
+            paddingBottom: Platform.OS === 'ios' ? 30 : 15,
+            paddingTop: 0,
+            height: Platform.OS === 'ios' ? 100 : 80,
+            justifyContent: 'flex-start',
           },
       }}
     >

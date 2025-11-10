@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { LogOut } from 'lucide-react-native';
 import { Dialog } from 'react-native-paper';
+import ScreenHeader from '@/components/ScreenHeader';
 import { commonStyles, colors, spacing } from '@/styles';
 
 const passwordSchema = z.object({
@@ -80,9 +81,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
-      <View style={{ padding: spacing.lg, backgroundColor: colors.background.primary, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <Text style={commonStyles.screenTitle}>{t('settings')}</Text>
-      </View>
+      <ScreenHeader title={t('settings')} />
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={commonStyles.section}>

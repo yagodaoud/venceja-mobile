@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon } from 'lucide-react-native';
 import ScanModal from '@/components/ScanModal';
+import ScreenHeader from '@/components/ScreenHeader';
 import { Boleto } from '@/types';
 import { commonStyles, colors, spacing, borderRadius, shadows } from '@/styles';
 
@@ -68,12 +69,10 @@ export default function ScanScreen() {
 
   return (
     <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
-      <View style={commonStyles.screenHeader}>
-        <View>
-          <Text style={commonStyles.screenTitle}>{t('scanBoleto')}</Text>
-          <Text style={commonStyles.screenSubtitle}>Escaneie seu boleto</Text>
-        </View>
-      </View>
+      <ScreenHeader
+        title={t('scanBoleto')}
+        subtitle="Escaneie seu boleto"
+      />
 
       <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: spacing.xxl, paddingTop: spacing.xxxl, paddingBottom: spacing.xxl }}>
         <View
