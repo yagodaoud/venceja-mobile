@@ -141,7 +141,7 @@ export default function DashboardScreen() {
     });
   };
 
-  // Animated styles for expanded filters - simple opacity for performance
+  // Animated styles for expanded filters - animate opacity only (height handled by container)
   const expandedFiltersStyle = useAnimatedStyle(() => {
     return {
       opacity: filterProgress.value,
@@ -153,6 +153,27 @@ export default function DashboardScreen() {
     const collapsedProgress = 1 - filterProgress.value;
     return {
       opacity: collapsedProgress,
+    };
+  });
+
+  // Animated style for the filter container - animates height to collapse
+  const filterContainerStyle = useAnimatedStyle(() => {
+    // When collapsed (filterProgress = 0), height should be just the collapsed bar height
+    // When expanded (filterProgress = 1), height should be auto (large enough for content)
+    // Collapsed bar height: paddingVertical (12*2) + button minHeight (48) = ~72px
+    const collapsedHeight = 72;
+    // Estimate expanded height: padding (16*2) + scrollview (~50) + status dropdown (~60) + date picker (~60) + margins = ~250px
+    const expandedHeight = 280;
+    
+    const height = interpolate(
+      filterProgress.value,
+      [0, 1],
+      [collapsedHeight, expandedHeight],
+      Extrapolate.CLAMP
+    );
+    
+    return {
+      height,
     };
   });
 
@@ -181,12 +202,15 @@ export default function DashboardScreen() {
 
       {/* Filter Container - Collapsed or Expanded */}
       <Animated.View
-        style={{
-          backgroundColor: colors.background.primary,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-          opacity: 1, // Container always visible
-        }}
+        style={[
+          {
+            backgroundColor: colors.background.primary,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            overflow: 'hidden',
+          },
+          filterContainerStyle,
+        ]}
       >
         {/* Collapsed Filter Bar - Always mounted for smooth transitions */}
         <Animated.View
@@ -197,7 +221,11 @@ export default function DashboardScreen() {
               paddingVertical: spacing.md,
               alignItems: 'center',
               gap: spacing.sm,
-              position: isFiltersCollapsed ? 'relative' : 'absolute',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 2,
             },
             collapsedBarStyle,
           ]}
@@ -258,7 +286,7 @@ export default function DashboardScreen() {
           style={[
             expandedFiltersStyle,
             {
-              position: !isFiltersCollapsed ? 'relative' : 'absolute',
+              zIndex: 1,
             },
           ]}
           pointerEvents={!isFiltersCollapsed ? 'auto' : 'none'}
