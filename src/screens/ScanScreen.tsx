@@ -67,7 +67,7 @@ export default function ScanScreen() {
   };
 
   return (
-    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+    <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
       <View style={commonStyles.screenHeader}>
         <View>
           <Text style={commonStyles.screenTitle}>{t('scanBoleto')}</Text>

@@ -114,7 +114,7 @@ export default function CategoriesScreen() {
   );
 
   return (
-    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
+    <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
       <View style={commonStyles.screenHeader}>
         <View>
           <Text style={[commonStyles.screenTitle, { marginBottom: spacing.xs }]}>{t('categories')}</Text>
