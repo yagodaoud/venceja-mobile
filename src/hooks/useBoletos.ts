@@ -139,13 +139,17 @@ export const useBoletos = (filters?: BoletoFilters) => {
     },
     deleteBoleto: deleteMutation.mutate,
     scanBoleto: (imageUri: string, options?: { onSuccess?: (data: Boleto) => void; onError?: (error: any) => void }) => {
-      scanMutation.mutate(imageUri, {
-        onSuccess: (result) => {
+      const executeScan = async () => {
+        try {
+          const result = await scanMutation.mutateAsync(imageUri);
           options?.onSuccess?.(result);
-        },
-        onError: (error) => {
+        } catch (error) {
           options?.onError?.(error);
-        },
+        }
+      };
+      
+      executeScan().catch((error) => {
+        options?.onError?.(error);
       });
     },
     markPaid: (data: { id: number; comprovanteUri?: string }, options?: { onSuccess?: (data: Boleto) => void; onError?: (error: any) => void }) => {

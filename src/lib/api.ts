@@ -90,12 +90,35 @@ class ApiClient {
       type,
     } as any);
 
-    const response = await this.client.post<{ data: Boleto } | Boleto>('/boletos/scan', formData, {
+    const response = await this.client.post<{ data: Boleto; message?: string; meta?: any } | Boleto>('/boletos/scan', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return 'data' in response.data ? response.data.data : response.data;
+
+    // Handle wrapped response: { data: Boleto, message: string, meta: any }
+    let boleto: Boleto;
+    const responseData = response.data;
+
+    // Check if response has the structure: { data: {...}, message: "...", meta: ... }
+    if (responseData && typeof responseData === 'object') {
+      if ('data' in responseData && responseData.data !== null && typeof responseData.data === 'object') {
+        boleto = (responseData as { data: Boleto; message?: string; meta?: any }).data;
+      } else if ('id' in responseData && 'fornecedor' in responseData) {
+        // Direct boleto object (has id and fornecedor fields)
+        boleto = responseData as Boleto;
+      } else {
+        throw new Error('Unexpected response structure from API');
+      }
+    } else {
+      throw new Error('Invalid response data from API');
+    }
+
+    if (!boleto) {
+      throw new Error('No boleto data in response');
+    }
+
+    return boleto;
   }
 
   async markBoletoAsPaid(id: number, comprovanteUri?: string): Promise<Boleto> {

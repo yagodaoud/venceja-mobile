@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Image, ScrollView, TextInput as RNTextInput, useWindowDimensions } from 'react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useCategories } from '@/hooks/useCategories';
@@ -7,13 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, TextInput } from 'react-native-paper';
 import { X } from 'lucide-react-native';
 import { format, parse } from 'date-fns';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { parseDate } from '@/lib/utils';
+import { SingleDatePicker } from './DatePicker';
 import CategoryPicker from './CategoryPicker';
 import { useModalStore } from '@/store/modalStore';
-import { modalStyles, commonStyles, colors, spacing } from '@/styles';
+import { colors, spacing, borderRadius, shadows, typography } from '@/styles';
 
 const scanSchema = z.object({
   fornecedor: z.string().min(1, 'Fornecedor é obrigatório'),
@@ -21,7 +21,11 @@ const scanSchema = z.object({
     const num = parseFloat(val.replace(',', '.'));
     return !isNaN(num) && num > 0;
   }, 'Valor deve ser maior que zero'),
-  vencimento: z.string().min(1, 'Data de vencimento é obrigatória'),
+  vencimento: z
+    .union([z.date(), z.undefined()])
+    .refine((date) => date !== undefined, {
+      message: 'Data de vencimento é obrigatória',
+    }),
   codigoBarras: z.string().optional(),
   categoriaId: z.number().nullable().optional(),
 });
@@ -40,8 +44,10 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
   const { createBoleto } = useBoletos();
   const { categories } = useCategories();
   const { setModalOpen } = useModalStore();
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { height: screenHeight } = useWindowDimensions();
+
+  // Calculate scroll view height: screen height * 0.95 (95%) - header height (~80) - buttons height (~100) - padding
+  const scrollViewHeight = screenHeight * 0.95 - 180;
 
   useEffect(() => {
     setModalOpen(visible);
@@ -52,14 +58,13 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
     handleSubmit,
     reset,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<ScanFormData>({
     resolver: zodResolver(scanSchema),
     defaultValues: {
       fornecedor: '',
       valor: '',
-      vencimento: '',
+      vencimento: undefined,
       codigoBarras: '',
       categoriaId: null,
     },
@@ -67,30 +72,31 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
 
   useEffect(() => {
     if (scannedBoleto) {
-      setValue('fornecedor', scannedBoleto.fornecedor);
-      setValue('valor', scannedBoleto.valor.toString().replace('.', ','));
-      setValue('vencimento', format(new Date(scannedBoleto.vencimento), 'dd/MM/yyyy'));
+      setValue('fornecedor', scannedBoleto.fornecedor || '');
+      setValue('valor', scannedBoleto.valor?.toString().replace('.', ',') || '');
+
+      // Parse date from DD/MM/YYYY format (or ISO if backend sends that)
+      if (scannedBoleto.vencimento) {
+        const parsedDate = parseDate(scannedBoleto.vencimento);
+        setValue('vencimento', parsedDate);
+      }
+
       setValue('codigoBarras', scannedBoleto.codigoBarras || '');
       setValue('categoriaId', scannedBoleto.categoria?.id || null);
-      setSelectedDate(new Date(scannedBoleto.vencimento));
     }
   }, [scannedBoleto, setValue]);
 
-  const handleDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(false);
-    if (date) {
-      setSelectedDate(date);
-      setValue('vencimento', format(date, 'dd/MM/yyyy'));
-    }
-  };
-
   const onSubmit = (data: ScanFormData) => {
+    // Type assertion: zod refine ensures vencimento is Date if validation passes
+    if (!data.vencimento) {
+      return; // Should not happen due to validation, but TypeScript safety
+    }
     const valor = parseFloat(data.valor.replace(',', '.'));
     createBoleto(
       {
         fornecedor: data.fornecedor,
         valor,
-        vencimento: data.vencimento,
+        vencimento: format(data.vencimento, 'dd/MM/yyyy'),
         codigoBarras: data.codigoBarras || undefined,
         categoriaId: data.categoriaId || null,
       },
@@ -109,141 +115,317 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
   };
 
   return (
-    <Modal 
-      visible={visible} 
-      transparent 
-      animationType="slide" 
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
       onRequestClose={handleClose}
       presentationStyle="overFullScreen"
       statusBarTranslucent
     >
-      <View style={modalStyles.overlay}>
-        <View style={modalStyles.modal}>
-          <View style={modalStyles.headerNoBorder}>
-            <Text style={modalStyles.title}>{t('editScanData')}</Text>
-            <TouchableOpacity onPress={handleClose} style={modalStyles.closeButton}>
-              <X size={24} color={colors.text.tertiary} />
+      <View style={{
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+      }}>
+        <View style={{
+          backgroundColor: colors.background.primary,
+          borderTopLeftRadius: borderRadius.xxl,
+          borderTopRightRadius: borderRadius.xxl,
+          maxHeight: '95%',
+          width: '100%',
+          ...shadows.lg,
+        }}>
+          {/* Header */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.lg,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.borderLight,
+          }}>
+            <Text style={{
+              fontSize: typography.sizes.xxl,
+              fontWeight: typography.weights.bold,
+              color: colors.text.primary,
+            }}>
+              {t('editScanData')}
+            </Text>
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.background.secondary,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={modalStyles.contentScroll} showsVerticalScrollIndicator={false}>
-            {scannedImageUri && (
-              <Image source={{ uri: scannedImageUri }} style={[modalStyles.image, { marginBottom: spacing.lg }]} />
-            )}
-
-            <Controller
-              control={control}
-              name="fornecedor"
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  label={t('supplier')}
-                  value={value}
-                  onChangeText={onChange}
-                  error={!!errors.fornecedor}
-                  mode="outlined"
-                  style={commonStyles.input}
-                />
+          <ScrollView
+            style={{
+              maxHeight: Math.max(400, scrollViewHeight),
+            }}
+            contentContainerStyle={{
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.lg,
+              paddingBottom: spacing.md,
+            }}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
+            <View style={{ gap: spacing.lg }}>
+              {/* Image Preview */}
+              {scannedImageUri && (
+                <View style={{
+                  borderRadius: borderRadius.lg,
+                  overflow: 'hidden',
+                  backgroundColor: colors.background.secondary,
+                  marginBottom: spacing.sm,
+                }}>
+                  <Image
+                    source={{ uri: scannedImageUri }}
+                    style={{
+                      width: '100%',
+                      height: 200,
+                      resizeMode: 'cover',
+                    }}
+                  />
+                </View>
               )}
-            />
-            {errors.fornecedor && (
-              <Text style={commonStyles.errorText}>{errors.fornecedor.message}</Text>
-            )}
 
-            <Controller
-              control={control}
-              name="valor"
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  label={t('value')}
-                  value={value}
-                  onChangeText={onChange}
-                  error={!!errors.valor}
-                  mode="outlined"
-                  keyboardType="numeric"
-                  style={commonStyles.input}
-                />
-              )}
-            />
-            {errors.valor && (
-              <Text style={commonStyles.errorText}>{errors.valor.message}</Text>
-            )}
-
-            <Controller
-              control={control}
-              name="vencimento"
-              render={({ field: { value } }) => (
-                <>
-                  <TouchableOpacity
-                    style={[commonStyles.input, { justifyContent: 'center', minHeight: 48 }]}
-                    onPress={() => setShowDatePicker(true)}
-                  >
-                    <Text style={{ fontSize: spacing.lg, color: value ? colors.text.secondary : colors.text.lighter }}>
-                      {t('dueDate')}: {value || t('date')}
-                    </Text>
-                  </TouchableOpacity>
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={selectedDate}
-                      mode="date"
-                      display="default"
-                      onChange={handleDateChange}
-                      minimumDate={new Date()}
+              {/* Fornecedor Field */}
+              <View>
+                <Text style={{
+                  fontSize: typography.sizes.md,
+                  fontWeight: typography.weights.semibold,
+                  color: colors.text.primary,
+                  marginBottom: spacing.sm,
+                }}>
+                  {t('supplier')}
+                </Text>
+                <Controller
+                  control={control}
+                  name="fornecedor"
+                  render={({ field: { onChange, value } }) => (
+                    <RNTextInput
+                      value={value}
+                      onChangeText={onChange}
+                      placeholder="Digite o nome do fornecedor"
+                      placeholderTextColor={colors.text.lighter}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: errors.fornecedor ? colors.error : colors.borderLight,
+                        borderRadius: borderRadius.md,
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.md,
+                        fontSize: typography.sizes.lg,
+                        color: colors.text.secondary,
+                        backgroundColor: colors.background.primary,
+                      }}
                     />
                   )}
-                </>
-              )}
-            />
-            {errors.vencimento && (
-              <Text style={commonStyles.errorText}>{errors.vencimento.message}</Text>
-            )}
-
-            <Controller
-              control={control}
-              name="codigoBarras"
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  label={t('barcode')}
-                  value={value}
-                  onChangeText={onChange}
-                  mode="outlined"
-                  style={commonStyles.input}
                 />
-              )}
-            />
+                {errors.fornecedor && (
+                  <Text style={{
+                    color: colors.error,
+                    fontSize: typography.sizes.sm,
+                    marginTop: spacing.xs,
+                    marginLeft: spacing.xs,
+                  }}>
+                    {errors.fornecedor.message}
+                  </Text>
+                )}
+              </View>
 
-            <Controller
-              control={control}
-              name="categoriaId"
-              render={({ field: { onChange, value } }) => (
-                <CategoryPicker
-                  categories={categories}
-                  selectedId={value || null}
-                  onSelect={(id) => onChange(id)}
+              {/* Valor Field */}
+              <View>
+                <Text style={{
+                  fontSize: typography.sizes.md,
+                  fontWeight: typography.weights.semibold,
+                  color: colors.text.primary,
+                  marginBottom: spacing.sm,
+                }}>
+                  {t('value')}
+                </Text>
+                <Controller
+                  control={control}
+                  name="valor"
+                  render={({ field: { onChange, value } }) => (
+                    <RNTextInput
+                      value={value}
+                      onChangeText={onChange}
+                      placeholder="0,00"
+                      placeholderTextColor={colors.text.lighter}
+                      keyboardType="numeric"
+                      style={{
+                        borderWidth: 1,
+                        borderColor: errors.valor ? colors.error : colors.borderLight,
+                        borderRadius: borderRadius.md,
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.md,
+                        fontSize: typography.sizes.lg,
+                        color: colors.text.secondary,
+                        backgroundColor: colors.background.primary,
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
+                {errors.valor && (
+                  <Text style={{
+                    color: colors.error,
+                    fontSize: typography.sizes.sm,
+                    marginTop: spacing.xs,
+                    marginLeft: spacing.xs,
+                  }}>
+                    {errors.valor.message}
+                  </Text>
+                )}
+              </View>
 
-            <View style={[modalStyles.actions, { marginTop: spacing.xl, marginBottom: spacing.xl, paddingTop: 0, borderTopWidth: 0 }]}>
-              <Button
-                mode="outlined"
-                onPress={handleClose}
-                style={{ flex: 1, borderColor: colors.text.tertiary }}
-              >
-                {t('cancel')}
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleSubmit(onSubmit)}
-                style={{ flex: 1, backgroundColor: colors.primary }}
-              >
-                {t('save')}
-              </Button>
+              {/* Vencimento Field */}
+              <View>
+                <Text style={{
+                  fontSize: typography.sizes.md,
+                  fontWeight: typography.weights.semibold,
+                  color: colors.text.primary,
+                  marginBottom: spacing.sm,
+                }}>
+                  {t('dueDate')}
+                </Text>
+                <Controller
+                  control={control}
+                  name="vencimento"
+                  render={({ field: { onChange, value } }) => (
+                    <SingleDatePicker
+                      date={value}
+                      onDateChange={onChange}
+                      placeholder="Selecione a data de vencimento"
+                    />
+                  )}
+                />
+                {errors.vencimento && (
+                  <Text style={{
+                    color: colors.error,
+                    fontSize: typography.sizes.sm,
+                    marginTop: spacing.xs,
+                    marginLeft: spacing.xs,
+                  }}>
+                    {errors.vencimento.message}
+                  </Text>
+                )}
+              </View>
+
+              {/* Código de Barras Field */}
+              <View>
+                <Text style={{
+                  fontSize: typography.sizes.md,
+                  fontWeight: typography.weights.semibold,
+                  color: colors.text.primary,
+                  marginBottom: spacing.sm,
+                }}>
+                  {t('barcode')}
+                </Text>
+                <Controller
+                  control={control}
+                  name="codigoBarras"
+                  render={({ field: { onChange, value } }) => (
+                    <RNTextInput
+                      value={value}
+                      onChangeText={onChange}
+                      placeholder="Código de barras (opcional)"
+                      placeholderTextColor={colors.text.lighter}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: colors.borderLight,
+                        borderRadius: borderRadius.md,
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.md,
+                        fontSize: typography.sizes.lg,
+                        color: colors.text.secondary,
+                        backgroundColor: colors.background.primary,
+                      }}
+                    />
+                  )}
+                />
+              </View>
+
+              {/* Category Picker */}
+              <Controller
+                control={control}
+                name="categoriaId"
+                render={({ field: { onChange, value } }) => (
+                  <CategoryPicker
+                    categories={categories}
+                    selectedId={value || null}
+                    onSelect={(id) => onChange(id)}
+                  />
+                )}
+              />
             </View>
           </ScrollView>
+
+          {/* Action Buttons */}
+          <View style={{
+            flexDirection: 'row',
+            gap: spacing.md,
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.lg,
+            paddingBottom: spacing.xl,
+            borderTopWidth: 1,
+            borderTopColor: colors.borderLight,
+          }}>
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{
+                flex: 1,
+                paddingVertical: spacing.md,
+                borderRadius: borderRadius.md,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.background.primary,
+                borderWidth: 1,
+                borderColor: colors.text.tertiary,
+              }}
+            >
+              <Text style={{
+                fontSize: typography.sizes.lg,
+                fontWeight: typography.weights.semibold,
+                color: colors.text.tertiary,
+              }}>
+                {t('cancel')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSubmit(onSubmit)}
+              style={{
+                flex: 1,
+                paddingVertical: spacing.md,
+                borderRadius: borderRadius.md,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.primary,
+                ...shadows.sm,
+              }}
+            >
+              <Text style={{
+                fontSize: typography.sizes.lg,
+                fontWeight: typography.weights.semibold,
+                color: colors.text.white,
+              }}>
+                {t('save')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
   );
 }
-
-
