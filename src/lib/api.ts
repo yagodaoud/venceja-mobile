@@ -1,10 +1,16 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
+import * as Device from 'expo-device';
 import { LoginRequest, LoginResponse, RefreshTokenResponse, Boleto, CreateBoletoRequest, UpdateBoletoRequest, PaginatedResponse, Categoria, CreateCategoriaRequest, UpdateCategoriaRequest, BoletoFilters } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8080/api/v1';
+
+// Get device info for session tracking
+const getDeviceInfo = (): string => {
+  return `${Device.modelName || 'Unknown'}, ${Device.osName || 'Unknown'} ${Device.osVersion || ''}`;
+};
 
 class ApiClient {
   public client: AxiosInstance;
@@ -79,7 +85,10 @@ class ApiClient {
             // Attempt to refresh the token
             const response = await axios.post<RefreshTokenResponse>(
               `${API_URL}/auth/refresh`,
-              { refreshToken },
+              {
+                refreshToken,
+                deviceInfo: getDeviceInfo(),
+              },
               {
                 headers: {
                   'Content-Type': 'application/json',
@@ -87,25 +96,25 @@ class ApiClient {
               }
             );
 
-            const { token: newToken, refreshToken: newRefreshToken } = response.data.data;
+            const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
             
             // Update tokens in store and secure storage
-            await SecureStore.setItemAsync('auth_token', newToken);
+            await SecureStore.setItemAsync('auth_token', newAccessToken);
             if (newRefreshToken) {
               await SecureStore.setItemAsync('refresh_token', newRefreshToken);
             }
 
             // Update auth store
             const { setTokens } = useAuthStore.getState();
-            await setTokens(newToken, newRefreshToken);
+            await setTokens(newAccessToken, newRefreshToken);
 
             // Update the original request with new token
             if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             }
 
             // Process queued requests
-            this.processQueue(newToken, null);
+            this.processQueue(newAccessToken, null);
 
             // Retry the original request
             return this.client(originalRequest);
@@ -145,13 +154,29 @@ class ApiClient {
 
   // Auth
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const response = await this.client.post<LoginResponse>('/auth/login', data);
+    const response = await this.client.post<LoginResponse>('/auth/login', data, {
+      headers: {
+        'X-Device-Info': getDeviceInfo(),
+      },
+    });
     return response.data;
   }
 
   async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
-    const response = await this.client.post<RefreshTokenResponse>('/auth/refresh', { refreshToken });
+    const response = await this.client.post<RefreshTokenResponse>('/auth/refresh', {
+      refreshToken,
+      deviceInfo: getDeviceInfo(),
+    });
     return response.data;
+  }
+
+  async logout(refreshToken: string): Promise<void> {
+    try {
+      await this.client.post('/auth/logout', { refreshToken });
+    } catch (error) {
+      // Even if logout fails on backend, we still clear local auth
+      console.error('Logout error:', error);
+    }
   }
 
   // Boletos

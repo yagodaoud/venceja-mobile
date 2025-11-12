@@ -5,6 +5,7 @@ export type BoletoStatus = 'PENDENTE' | 'VENCIDO' | 'PAGO';
 export interface User {
   id: number;
   email: string;
+  nome?: string;
   cnpj?: string;
 }
 
@@ -49,17 +50,23 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   data: {
-    token: string;
-    refreshToken?: string;
+    accessToken: string;
+    refreshToken: string;
+    tokenType?: string;
+    expiresIn?: number;
     user: User;
   };
+  message?: string;
 }
 
 export interface RefreshTokenResponse {
   data: {
-    token: string;
-    refreshToken?: string;
+    accessToken: string;
+    refreshToken: string;
+    tokenType?: string;
+    expiresIn?: number;
   };
+  message?: string;
 }
 
 export interface PaginatedResponse<T> {
