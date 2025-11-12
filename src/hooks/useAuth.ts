@@ -12,7 +12,7 @@ export const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => apiClient.login(data),
     onSuccess: (response) => {
-      setAuth(response.data.user, response.data.token);
+      setAuth(response.data.user, response.data.token, response.data.refreshToken);
       Toast.show({
         type: 'success',
         text1: t('success'),

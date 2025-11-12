@@ -1,12 +1,18 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { LoginRequest, LoginResponse, Boleto, CreateBoletoRequest, UpdateBoletoRequest, PaginatedResponse, Categoria, CreateCategoriaRequest, UpdateCategoriaRequest, BoletoFilters } from '@/types';
+import { LoginRequest, LoginResponse, RefreshTokenResponse, Boleto, CreateBoletoRequest, UpdateBoletoRequest, PaginatedResponse, Categoria, CreateCategoriaRequest, UpdateCategoriaRequest, BoletoFilters } from '@/types';
+import { useAuthStore } from '@/store/authStore';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8080/api/v1';
 
 class ApiClient {
   public client: AxiosInstance;
+  private isRefreshing = false;
+  private failedQueue: Array<{
+    resolve: (value?: any) => void;
+    reject: (error?: any) => void;
+  }> = [];
 
   constructor() {
     this.client = axios.create({
@@ -28,24 +34,123 @@ class ApiClient {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor - handle 401
-    // Note: Logout is handled in AppNavigator to avoid circular dependency
+    // Response interceptor - handle 401 with token refresh
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Clear token - store will handle logout on next auth check
-          await SecureStore.deleteItemAsync('auth_token');
-          await SecureStore.deleteItemAsync('auth_user');
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+        // If error is 401 and we haven't already tried to refresh
+        // Also skip if the request was to the refresh endpoint itself
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          !originalRequest.url?.includes('/auth/refresh')
+        ) {
+          if (this.isRefreshing) {
+            // If already refreshing, queue this request
+            return new Promise((resolve, reject) => {
+              this.failedQueue.push({ resolve, reject });
+            })
+              .then((token) => {
+                if (originalRequest.headers) {
+                  originalRequest.headers.Authorization = `Bearer ${token}`;
+                }
+                return this.client(originalRequest);
+              })
+              .catch((err) => {
+                return Promise.reject(err);
+              });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            const refreshToken = await SecureStore.getItemAsync('refresh_token');
+            
+            if (!refreshToken) {
+              // No refresh token available, clear auth and reject
+              await this.clearAuth();
+              this.processQueue(null, new Error('No refresh token available'));
+              return Promise.reject(error);
+            }
+
+            // Attempt to refresh the token
+            const response = await axios.post<RefreshTokenResponse>(
+              `${API_URL}/auth/refresh`,
+              { refreshToken },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+
+            const { token: newToken, refreshToken: newRefreshToken } = response.data.data;
+            
+            // Update tokens in store and secure storage
+            await SecureStore.setItemAsync('auth_token', newToken);
+            if (newRefreshToken) {
+              await SecureStore.setItemAsync('refresh_token', newRefreshToken);
+            }
+
+            // Update auth store
+            const { setTokens } = useAuthStore.getState();
+            await setTokens(newToken, newRefreshToken);
+
+            // Update the original request with new token
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            }
+
+            // Process queued requests
+            this.processQueue(newToken, null);
+
+            // Retry the original request
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            // Refresh failed, clear auth and reject all queued requests
+            await this.clearAuth();
+            this.processQueue(null, refreshError);
+            return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
+          }
         }
+
         return Promise.reject(error);
       }
     );
   }
 
+  private processQueue(token: string | null, error: any) {
+    this.failedQueue.forEach((prom) => {
+      if (error) {
+        prom.reject(error);
+      } else {
+        prom.resolve(token);
+      }
+    });
+    this.failedQueue = [];
+  }
+
+  private async clearAuth() {
+    await SecureStore.deleteItemAsync('auth_token');
+    await SecureStore.deleteItemAsync('auth_user');
+    await SecureStore.deleteItemAsync('refresh_token');
+    const { clearAuth } = useAuthStore.getState();
+    await clearAuth();
+  }
+
   // Auth
   async login(data: LoginRequest): Promise<LoginResponse> {
     const response = await this.client.post<LoginResponse>('/auth/login', data);
+    return response.data;
+  }
+
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    const response = await this.client.post<RefreshTokenResponse>('/auth/refresh', { refreshToken });
     return response.data;
   }
 
