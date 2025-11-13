@@ -12,6 +12,7 @@ import BoletoModal from '@/components/BoletoModal';
 import AddBoletoModal from '@/components/AddBoletoModal';
 import ScanSourceModal from '@/components/ScanSourceModal';
 import ScanModal from '@/components/ScanModal';
+import LoadingModal from '@/components/LoadingModal';
 import { BoletoCardSkeleton } from '@/components/Skeleton';
 import { Plus, Filter, Calendar as CalendarIcon } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -47,8 +48,9 @@ export default function DashboardScreen() {
   const [scannedImageUri, setScannedImageUri] = useState<string | null>(null);
   const [scannedBoletoId, setScannedBoletoId] = useState<number | null>(null);
   const [scanError, setScanError] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const scrollY = useSharedValue(0);
-  const filterProgress = useSharedValue(1); // 1 = expanded, 0 = collapsed
+  const filterProgress = useSharedValue(1);
   const lastScrollY = useSharedValue(0);
   const isCollapsedShared = useSharedValue(false);
   const flatListRef = useRef<FlatList>(null);
@@ -127,16 +129,20 @@ export default function DashboardScreen() {
   const handleScan = (imageUri: string) => {
     setScannedImageUri(imageUri);
     setScanError(false);
+    setIsProcessingImage(true);
+
     scanBoleto(imageUri, {
       onSuccess: (data) => {
         setScannedBoleto(data);
         setScannedBoletoId(data.id);
+        setIsProcessingImage(false);
         setScanModalVisible(true);
         setScanError(false);
       },
       onError: () => {
         setScannedBoleto(null);
         setScannedBoletoId(null);
+        setIsProcessingImage(false);
         setScanModalVisible(true);
         setScanError(true);
       },
@@ -145,12 +151,13 @@ export default function DashboardScreen() {
 
   const handleRetryScan = () => {
     if (scannedImageUri) {
+      setScanModalVisible(false);
+      setIsProcessingImage(true);
       handleScan(scannedImageUri);
     }
   };
 
   const handleScanModalClose = () => {
-    // If user cancels and a boleto was created from scan, delete it
     if (scannedBoletoId) {
       deleteBoleto(scannedBoletoId);
     }
@@ -163,29 +170,24 @@ export default function DashboardScreen() {
 
   const handleScanModalSubmit = (data: any) => {
     const valor = parseFloat(data.valor.replace(',', '.'));
-    
-    // If scan succeeded, the boleto already exists (created by scan endpoint)
-    // Check if user made any changes and update if needed
+
     if (scannedBoleto && scannedBoletoId) {
-      // Compare values - note: vencimento is formatted as DD/MM/YYYY in data.vencimento
-      // but scannedBoleto.vencimento might be in ISO format, so we need to compare formatted versions
       const scannedVencimentoFormatted = formatDate(scannedBoleto.vencimento);
-      const hasChanges = 
+      const hasChanges =
         scannedBoleto.fornecedor !== data.fornecedor ||
-        Math.abs(scannedBoleto.valor - valor) > 0.01 || // Compare with tolerance for floating point
+        Math.abs(scannedBoleto.valor - valor) > 0.01 ||
         scannedVencimentoFormatted !== data.vencimento ||
         (scannedBoleto.codigoBarras || '') !== (data.codigoBarras || '') ||
         (scannedBoleto.categoria?.id || null) !== (data.categoriaId || null);
-      
+
       if (hasChanges && updateBoleto) {
-        // Update the boleto with user's changes
         updateBoleto(
           {
             id: scannedBoletoId,
             data: {
               fornecedor: data.fornecedor,
               valor,
-              vencimento: data.vencimento, // Already formatted as DD/MM/YYYY
+              vencimento: data.vencimento,
               codigoBarras: data.codigoBarras || undefined,
               categoriaId: data.categoriaId || null,
             },
@@ -202,7 +204,6 @@ export default function DashboardScreen() {
           }
         );
       } else {
-        // No changes, just close (boleto already exists from scan)
         setScanModalVisible(false);
         setScannedBoleto(null);
         setScannedImageUri(null);
@@ -213,12 +214,11 @@ export default function DashboardScreen() {
       return;
     }
 
-    // If scan failed but user filled the form, create boleto manually
     createBoleto(
       {
         fornecedor: data.fornecedor,
         valor,
-        vencimento: data.vencimento, // Already formatted as DD/MM/YYYY from ScanModal
+        vencimento: data.vencimento,
         codigoBarras: data.codigoBarras || undefined,
         categoriaId: data.categoriaId || null,
       },
@@ -249,37 +249,26 @@ export default function DashboardScreen() {
     lastScrollY.value = offsetY;
     scrollY.value = offsetY;
 
-    // Smooth scroll range - animation happens over 45px of scrolling
     const scrollRange = 45;
-    // Calculate progress directly from scroll position (1 = fully expanded, 0 = fully collapsed)
     const rawProgress = Math.max(0, Math.min(1, 1 - (offsetY / scrollRange)));
 
-    // Hysteresis for state changes - prevents jittery behavior
-    // Collapse threshold: when scrolled ~25px (progress ~0.44)
-    // Expand threshold: when scrolled back to ~10px (progress ~0.78)
-    // This makes it collapse earlier and expand earlier for better responsiveness
-    const collapseProgressThreshold = 0.44; // Progress below this = collapsed (offsetY > ~25px)
-    const expandProgressThreshold = 0.78;   // Progress above this = expanded (offsetY < ~10px)
+    const collapseProgressThreshold = 0.44;
+    const expandProgressThreshold = 0.78;
 
     const currentlyCollapsed = isCollapsedShared.value;
     let targetCollapsed: boolean;
 
     if (currentlyCollapsed) {
-      // Currently collapsed - expand if we scroll back up enough (progress increases above threshold)
       targetCollapsed = rawProgress < expandProgressThreshold;
     } else {
-      // Currently expanded - collapse if we scroll down enough (progress decreases below threshold)
       targetCollapsed = rawProgress < collapseProgressThreshold;
     }
 
-    // Update shared value and JS state for pointer events (only when crossing the threshold)
     if (targetCollapsed !== currentlyCollapsed) {
       isCollapsedShared.value = targetCollapsed;
       runOnJS(setIsFiltersCollapsed)(targetCollapsed);
     }
 
-    // Update progress smoothly - use direct assignment for immediate response, spring for smoothness
-    // Use a faster, more responsive spring animation
     filterProgress.value = withSpring(rawProgress, {
       damping: 25,
       stiffness: 250,
@@ -327,7 +316,6 @@ export default function DashboardScreen() {
     isCollapsedShared.value = false;
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
 
-    // Very fast spring animation
     filterProgress.value = withSpring(1, {
       damping: 20,
       stiffness: 200,
@@ -335,14 +323,12 @@ export default function DashboardScreen() {
     });
   };
 
-  // Animated styles for expanded filters - animate opacity only (height handled by container)
   const expandedFiltersStyle = useAnimatedStyle(() => {
     return {
       opacity: filterProgress.value,
     };
   });
 
-  // Animated styles for collapsed filter bar - fast and synchronized  
   const collapsedBarStyle = useAnimatedStyle(() => {
     const collapsedProgress = 1 - filterProgress.value;
     return {
@@ -350,13 +336,8 @@ export default function DashboardScreen() {
     };
   });
 
-  // Animated style for the filter container - animates height to collapse
   const filterContainerStyle = useAnimatedStyle(() => {
-    // When collapsed (filterProgress = 0), height should be just the collapsed bar height
-    // When expanded (filterProgress = 1), height should match actual content
-    // Collapsed bar height: paddingVertical (12*2) + button minHeight (48) = ~72px
     const collapsedHeight = 72;
-    // Expanded height: padding (16*2) + scrollview (~55) + margins (8+8) + status dropdown (~52) + date picker (~52) = ~207px
     const expandedHeight = 180;
 
     const height = interpolate(
@@ -382,7 +363,6 @@ export default function DashboardScreen() {
         }}
       />
 
-      {/* Filter Container - Collapsed or Expanded */}
       <Animated.View
         style={[
           {
@@ -394,7 +374,6 @@ export default function DashboardScreen() {
           filterContainerStyle,
         ]}
       >
-        {/* Collapsed Filter Bar - Always mounted for smooth transitions */}
         <Animated.View
           style={[
             {
@@ -463,7 +442,6 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Expanded Filters - Always mounted for smooth transitions */}
         <Animated.View
           style={[
             expandedFiltersStyle,
@@ -637,6 +615,11 @@ export default function DashboardScreen() {
         onClose={handleScanModalClose}
         onSubmit={handleScanModalSubmit}
         onRetry={handleRetryScan}
+      />
+
+      <LoadingModal
+        visible={isProcessingImage}
+        message="Processando imagem..."
       />
 
       <Dialog visible={deleteModalVisible} onDismiss={() => setDeleteModalVisible(false)}>

@@ -12,12 +12,14 @@ import ReportsScreen from '@/screens/ReportsScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import { Receipt, Tag, BarChart3, Settings } from 'lucide-react-native';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
   const { isAnyModalOpen } = useModalStore();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -40,9 +42,13 @@ function MainTabs() {
         tabBarStyle: isAnyModalOpen
           ? { display: 'none' }
           : {
-            paddingBottom: Platform.OS === 'ios' ? 30 : 15,
+            paddingBottom: Platform.OS === 'ios'
+              ? Math.max(insets.bottom, 10)
+              : Math.max(insets.bottom - 10, 10),
             paddingTop: 0,
-            height: Platform.OS === 'ios' ? 100 : 80,
+            height: Platform.OS === 'ios'
+              ? 85 + Math.max(insets.bottom, 10)
+              : 70 + Math.max(insets.bottom - 10, 10),
             justifyContent: 'flex-start',
           },
       }}
