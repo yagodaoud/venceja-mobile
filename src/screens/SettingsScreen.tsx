@@ -116,16 +116,6 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={commonStyles.section}>
-          <Text style={commonStyles.sectionTitle}>{t('cadastros')}</Text>
-          <TouchableOpacity
-            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.background.secondary }}
-            onPress={() => navigation.navigate('Categories' as never)}
-          >
-            <Text style={{ fontSize: spacing.lg, color: colors.text.primary }}>{t('categories')}</Text>
-            <Text style={{ fontSize: spacing.xxl, color: colors.text.tertiary }}>→</Text>
-          </TouchableOpacity>
-        </View>
 
         <View style={commonStyles.section}>
           <Text style={commonStyles.sectionTitle}>Aparência</Text>

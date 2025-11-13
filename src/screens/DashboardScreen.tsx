@@ -10,9 +10,13 @@ import StatusDropdown from '@/components/StatusDropdown';
 import { DateRangePicker } from '@/components/DatePicker';
 import BoletoModal from '@/components/BoletoModal';
 import AddBoletoModal from '@/components/AddBoletoModal';
+import ScanSourceModal from '@/components/ScanSourceModal';
+import ScanModal from '@/components/ScanModal';
 import { BoletoCardSkeleton } from '@/components/Skeleton';
 import { Plus, Filter, Calendar as CalendarIcon } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { DateRange, getCurrentMonthRange, getLastMonthRange, getLast3MonthsRange, getCurrentBimestreRange, areDateRangesEqual, toDDMMYYYY, formatDate, getStatusLabel } from '@/lib/utils';
 import { Dialog, Button as PaperButton } from 'react-native-paper';
 import ScreenHeader from '@/components/ScreenHeader';
@@ -35,8 +39,14 @@ export default function DashboardScreen() {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [scanSourceModalVisible, setScanSourceModalVisible] = useState(false);
+  const [scanModalVisible, setScanModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
+  const [scannedBoleto, setScannedBoleto] = useState<Boleto | null>(null);
+  const [scannedImageUri, setScannedImageUri] = useState<string | null>(null);
+  const [scannedBoletoId, setScannedBoletoId] = useState<number | null>(null);
+  const [scanError, setScanError] = useState(false);
   const scrollY = useSharedValue(0);
   const filterProgress = useSharedValue(1); // 1 = expanded, 0 = collapsed
   const lastScrollY = useSharedValue(0);
@@ -53,7 +63,7 @@ export default function DashboardScreen() {
     size: 20,
   };
 
-  const { boletos, isLoading, refetch, markPaid, deleteBoleto } = useBoletos(filters);
+  const { boletos, isLoading, refetch, markPaid, deleteBoleto, scanBoleto, createBoleto, updateBoleto } = useBoletos(filters);
 
   const handleMarkPaid = (boleto: Boleto) => {
     setSelectedBoleto(boleto);
@@ -79,7 +89,150 @@ export default function DashboardScreen() {
   };
 
   const handleScanPress = () => {
-    (navigation as any).navigate('Scan');
+    setScanSourceModalVisible(true);
+  };
+
+  const handleTakePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      handleScan(result.assets[0].uri);
+    }
+  };
+
+  const handleUploadImage = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        handleScan(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+    }
+  };
+
+  const handleScan = (imageUri: string) => {
+    setScannedImageUri(imageUri);
+    setScanError(false);
+    scanBoleto(imageUri, {
+      onSuccess: (data) => {
+        setScannedBoleto(data);
+        setScannedBoletoId(data.id);
+        setScanModalVisible(true);
+        setScanError(false);
+      },
+      onError: () => {
+        setScannedBoleto(null);
+        setScannedBoletoId(null);
+        setScanModalVisible(true);
+        setScanError(true);
+      },
+    });
+  };
+
+  const handleRetryScan = () => {
+    if (scannedImageUri) {
+      handleScan(scannedImageUri);
+    }
+  };
+
+  const handleScanModalClose = () => {
+    // If user cancels and a boleto was created from scan, delete it
+    if (scannedBoletoId) {
+      deleteBoleto(scannedBoletoId);
+    }
+    setScanModalVisible(false);
+    setScannedBoleto(null);
+    setScannedImageUri(null);
+    setScannedBoletoId(null);
+    setScanError(false);
+  };
+
+  const handleScanModalSubmit = (data: any) => {
+    const valor = parseFloat(data.valor.replace(',', '.'));
+    
+    // If scan succeeded, the boleto already exists (created by scan endpoint)
+    // Check if user made any changes and update if needed
+    if (scannedBoleto && scannedBoletoId) {
+      // Compare values - note: vencimento is formatted as DD/MM/YYYY in data.vencimento
+      // but scannedBoleto.vencimento might be in ISO format, so we need to compare formatted versions
+      const scannedVencimentoFormatted = formatDate(scannedBoleto.vencimento);
+      const hasChanges = 
+        scannedBoleto.fornecedor !== data.fornecedor ||
+        Math.abs(scannedBoleto.valor - valor) > 0.01 || // Compare with tolerance for floating point
+        scannedVencimentoFormatted !== data.vencimento ||
+        (scannedBoleto.codigoBarras || '') !== (data.codigoBarras || '') ||
+        (scannedBoleto.categoria?.id || null) !== (data.categoriaId || null);
+      
+      if (hasChanges && updateBoleto) {
+        // Update the boleto with user's changes
+        updateBoleto(
+          {
+            id: scannedBoletoId,
+            data: {
+              fornecedor: data.fornecedor,
+              valor,
+              vencimento: data.vencimento, // Already formatted as DD/MM/YYYY
+              codigoBarras: data.codigoBarras || undefined,
+              categoriaId: data.categoriaId || null,
+            },
+          },
+          {
+            onSuccess: () => {
+              setScanModalVisible(false);
+              setScannedBoleto(null);
+              setScannedImageUri(null);
+              setScannedBoletoId(null);
+              setScanError(false);
+              refetch();
+            },
+          }
+        );
+      } else {
+        // No changes, just close (boleto already exists from scan)
+        setScanModalVisible(false);
+        setScannedBoleto(null);
+        setScannedImageUri(null);
+        setScannedBoletoId(null);
+        setScanError(false);
+        refetch();
+      }
+      return;
+    }
+
+    // If scan failed but user filled the form, create boleto manually
+    createBoleto(
+      {
+        fornecedor: data.fornecedor,
+        valor,
+        vencimento: data.vencimento, // Already formatted as DD/MM/YYYY from ScanModal
+        codigoBarras: data.codigoBarras || undefined,
+        categoriaId: data.categoriaId || null,
+      },
+      {
+        onSuccess: () => {
+          setScanModalVisible(false);
+          setScannedBoleto(null);
+          setScannedImageUri(null);
+          setScannedBoletoId(null);
+          setScanError(false);
+          refetch();
+        },
+      }
+    );
   };
 
   const handleCreateManual = () => {
@@ -147,6 +300,17 @@ export default function DashboardScreen() {
     return getStatusLabel(statusFilter);
   };
 
+  const handleMarkPaidWithComprovante = (boletoId: number, comprovanteUri: string) => {
+    markPaid(
+      { id: boletoId, comprovanteUri },
+      {
+        onSuccess: () => {
+          refetch();
+        },
+      }
+    );
+  };
+
   const renderItem = ({ item }: { item: Boleto }) => (
     <BoletoCard
       boleto={item}
@@ -154,6 +318,7 @@ export default function DashboardScreen() {
       onEdit={() => handleEdit(item)}
       onDelete={() => handleDelete(item)}
       onMarkPaid={() => handleMarkPaid(item)}
+      onMarkPaidWithComprovante={handleMarkPaidWithComprovante}
     />
   );
 
@@ -455,6 +620,23 @@ export default function DashboardScreen() {
         onClose={() => setAddModalVisible(false)}
         onScan={handleScanPress}
         onCreateManual={handleCreateManual}
+      />
+
+      <ScanSourceModal
+        visible={scanSourceModalVisible}
+        onClose={() => setScanSourceModalVisible(false)}
+        onTakePhoto={handleTakePhoto}
+        onUploadImage={handleUploadImage}
+      />
+
+      <ScanModal
+        visible={scanModalVisible}
+        scannedBoleto={scannedBoleto}
+        scannedImageUri={scannedImageUri}
+        scanError={scanError}
+        onClose={handleScanModalClose}
+        onSubmit={handleScanModalSubmit}
+        onRetry={handleRetryScan}
       />
 
       <Dialog visible={deleteModalVisible} onDismiss={() => setDeleteModalVisible(false)}>

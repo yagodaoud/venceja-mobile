@@ -10,7 +10,7 @@ import ScanScreen from '@/screens/ScanScreen';
 import CategoriesScreen from '@/screens/CategoriesScreen';
 import ReportsScreen from '@/screens/ReportsScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
-import { Receipt, Camera, BarChart3, Settings } from 'lucide-react-native';
+import { Receipt, Tag, BarChart3, Settings } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -56,11 +56,11 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="Scan"
-        component={ScanScreen}
+        name="Categories"
+        component={CategoriesScreen}
         options={{
-          tabBarLabel: 'Escanear',
-          tabBarIcon: ({ color, size }) => <Camera color={color} size={size} />,
+          tabBarLabel: 'Categorias',
+          tabBarIcon: ({ color, size }) => <Tag color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -102,7 +102,7 @@ export default function AppNavigator() {
         ) : (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Screen name="Categories" component={CategoriesScreen} />
+            <Stack.Screen name="Scan" component={ScanScreen} />
           </>
         )}
       </Stack.Navigator>

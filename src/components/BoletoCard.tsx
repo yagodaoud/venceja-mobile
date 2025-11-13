@@ -40,6 +40,7 @@ interface BoletoCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onMarkPaid: () => void;
+  onMarkPaidWithComprovante?: (boletoId: number, comprovanteUri: string) => void;
   onExpand?: () => void;
 }
 
@@ -51,6 +52,7 @@ export default function BoletoCard({
   onEdit,
   onDelete,
   onMarkPaid,
+  onMarkPaidWithComprovante,
   onExpand,
 }: BoletoCardProps) {
   const { t } = useTranslation();
@@ -216,7 +218,7 @@ export default function BoletoCard({
                 onMarkPaid();
               }}
             >
-              <Text style={styles.payButtonText}>Pagar</Text>
+              <Text style={styles.payButtonText}>Marcar como Pago</Text>
             </TouchableOpacity>
           )}
         </TouchableOpacity>
@@ -356,7 +358,9 @@ export default function BoletoCard({
       <ComprovantePreview
         visible={showComprovantePreview}
         imageUri={boleto.comprovanteUrl || ''}
+        boletoId={boleto.id}
         onClose={() => setShowComprovantePreview(false)}
+        onMarkPaid={onMarkPaidWithComprovante}
       />
     </>
   );

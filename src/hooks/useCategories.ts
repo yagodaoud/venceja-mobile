@@ -78,8 +78,26 @@ export const useCategories = () => {
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,
-    createCategory: createMutation.mutate,
-    updateCategory: updateMutation.mutate,
+    createCategory: (data: CreateCategoriaRequest, options?: { onSuccess?: () => void; onError?: () => void }) => {
+      createMutation.mutate(data, {
+        onSuccess: () => {
+          options?.onSuccess?.();
+        },
+        onError: () => {
+          options?.onError?.();
+        },
+      });
+    },
+    updateCategory: (data: { id: number; data: UpdateCategoriaRequest }, options?: { onSuccess?: () => void; onError?: () => void }) => {
+      updateMutation.mutate(data, {
+        onSuccess: () => {
+          options?.onSuccess?.();
+        },
+        onError: () => {
+          options?.onError?.();
+        },
+      });
+    },
     deleteCategory: deleteMutation.mutate,
   };
 };

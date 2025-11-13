@@ -36,10 +36,13 @@ interface ScanModalProps {
   visible: boolean;
   scannedBoleto: Boleto | null;
   scannedImageUri: string | null;
+  scanError?: boolean;
   onClose: () => void;
+  onSubmit?: (data: ScanFormData) => void;
+  onRetry?: () => void;
 }
 
-export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onClose }: ScanModalProps) {
+export default function ScanModal({ visible, scannedBoleto, scannedImageUri, scanError = false, onClose, onSubmit, onRetry }: ScanModalProps) {
   const { t } = useTranslation();
   const { createBoleto } = useBoletos();
   const { categories } = useCategories();
@@ -86,11 +89,22 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
     }
   }, [scannedBoleto, setValue]);
 
-  const onSubmit = (data: ScanFormData) => {
+  const onSubmitForm = (data: ScanFormData) => {
     // Type assertion: zod refine ensures vencimento is Date if validation passes
     if (!data.vencimento) {
       return; // Should not happen due to validation, but TypeScript safety
     }
+    
+    // If onSubmit prop is provided, use it (for custom handling in DashboardScreen)
+    if (onSubmit) {
+      onSubmit({
+        ...data,
+        vencimento: format(data.vencimento, 'dd/MM/yyyy'),
+      } as any);
+      return;
+    }
+    
+    // Otherwise, use the default behavior (create boleto)
     const valor = parseFloat(data.valor.replace(',', '.'));
     createBoleto(
       {
@@ -152,7 +166,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
               fontWeight: typography.weights.bold,
               color: colors.text.primary,
             }}>
-              {t('editScanData')}
+              {scanError ? 'Erro ao Escanear' : scannedBoleto ? 'Revisar Dados' : 'Adicionar Boleto'}
             </Text>
             <TouchableOpacity
               onPress={handleClose}
@@ -182,6 +196,53 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
             nestedScrollEnabled={true}
           >
             <View style={{ gap: spacing.lg }}>
+              {/* Error Message */}
+              {scanError && (
+                <View style={{
+                  backgroundColor: colors.error + '20',
+                  borderRadius: borderRadius.md,
+                  padding: spacing.md,
+                  marginBottom: spacing.sm,
+                  borderWidth: 1,
+                  borderColor: colors.error + '40',
+                }}>
+                  <Text style={{
+                    fontSize: typography.sizes.md,
+                    color: colors.error,
+                    fontWeight: typography.weights.semibold,
+                    marginBottom: spacing.xs,
+                  }}>
+                    Erro ao escanear o boleto
+                  </Text>
+                  <Text style={{
+                    fontSize: typography.sizes.sm,
+                    color: colors.text.tertiary,
+                  }}>
+                    Por favor, preencha os dados manualmente ou tente escanear novamente.
+                  </Text>
+                  {onRetry && (
+                    <TouchableOpacity
+                      onPress={onRetry}
+                      style={{
+                        marginTop: spacing.sm,
+                        padding: spacing.sm,
+                        backgroundColor: colors.primary,
+                        borderRadius: borderRadius.sm,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: typography.sizes.md,
+                        color: colors.text.white,
+                        fontWeight: typography.weights.semibold,
+                      }}>
+                        Tentar Novamente
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
               {/* Image Preview */}
               {scannedImageUri && (
                 <View style={{
@@ -404,7 +465,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
+              onPress={handleSubmit(onSubmitForm)}
               style={{
                 flex: 1,
                 paddingVertical: spacing.md,
@@ -420,7 +481,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, onC
                 fontWeight: typography.weights.semibold,
                 color: colors.text.white,
               }}>
-                {t('save')}
+                {scannedBoleto ? t('save') : 'Criar Boleto'}
               </Text>
             </TouchableOpacity>
           </View>

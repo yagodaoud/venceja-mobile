@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCategories } from '@/hooks/useCategories';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { commonStyles, colors, spacing, shadows, modalStyles } from '@/styles';
 import { useModalStore } from '@/store/modalStore';
 import ColorPicker from '@/components/ColorPicker';
 import { CategoryCardSkeleton } from '@/components/Skeleton';
+import { formatDate } from '@/lib/utils';
 
 const categorySchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -24,12 +25,13 @@ type CategoryFormData = z.infer<typeof categorySchema>;
 
 export default function CategoriesScreen() {
   const { t } = useTranslation();
-  const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { categories, isLoading, refetch, createCategory, updateCategory, deleteCategory } = useCategories();
   const { setModalOpen } = useModalStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Categoria | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Categoria | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const {
     control,
@@ -77,12 +79,26 @@ export default function CategoriesScreen() {
 
   const onSubmit = (data: CategoryFormData) => {
     if (editingCategory) {
-      updateCategory({ id: editingCategory.id, data });
+      updateCategory({ id: editingCategory.id, data }, {
+        onSuccess: () => {
+          setModalVisible(false);
+          reset();
+        },
+      });
     } else {
-      createCategory(data);
+      createCategory(data, {
+        onSuccess: () => {
+          setModalVisible(false);
+          reset();
+        },
+      });
     }
-    setModalVisible(false);
-    reset();
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
   };
 
   const renderItem = ({ item }: { item: Categoria }) => (
@@ -92,34 +108,39 @@ export default function CategoriesScreen() {
         {
           marginBottom: spacing.sm,
           marginHorizontal: spacing.lg,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          padding: spacing.md,
         },
       ]}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 }}>
-        <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: item.cor }} />
-        <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary, flex: 1 }}>
-          {item.nome}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 }}>
+          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: item.cor }} />
+          <Text style={{ fontSize: spacing.lg, fontWeight: '600', color: colors.text.primary, flex: 1 }}>
+            {item.nome}
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', gap: spacing.lg, alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => handleEdit(item)}>
+            <Edit size={20} color={colors.secondary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDelete(item)}>
+            <Trash2 size={20} color={colors.error} />
+          </TouchableOpacity>
+        </View>
+      </View>
+      {item.createdAt && (
+        <Text style={{ fontSize: spacing.sm, color: colors.text.tertiary, marginTop: spacing.xs }}>
+          Criado em: {formatDate(item.createdAt)}
         </Text>
-      </View>
-      <View style={{ flexDirection: 'row', gap: spacing.lg, alignItems: 'center' }}>
-        <TouchableOpacity onPress={() => handleEdit(item)}>
-          <Edit size={20} color={colors.secondary} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDelete(item)}>
-          <Trash2 size={20} color={colors.error} />
-        </TouchableOpacity>
-      </View>
+      )}
     </View>
   );
 
   return (
     <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
       <ScreenHeader
-        title={t('categories')}
-        subtitle="Organize suas categorias"
+        title="Categorias"
+        subtitle="Gerencie suas categorias"
         rightAction={{
           icon: <Plus size={24} color={colors.text.white} />,
           onPress: handleCreate,
@@ -144,6 +165,9 @@ export default function CategoriesScreen() {
             paddingTop: spacing.sm,
             paddingBottom: spacing.sm,
           }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           ListEmptyComponent={
             <View style={commonStyles.empty}>
               <Text style={commonStyles.emptyText}>{t('noCategories')}</Text>
