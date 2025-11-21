@@ -19,7 +19,7 @@ import {
 } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Swipeable } from 'react-native-gesture-handler';
-import { Edit, Trash2, Clock, Circle, X, Calendar, FileText, Copy } from 'lucide-react-native';
+import { Edit, Trash2, Clock, Circle, X, Calendar, FileText, Copy, CheckCircle2 } from 'lucide-react-native';
 import ComprovantePreview from './ComprovantePreview';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
@@ -33,6 +33,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { colors, spacing, shadows, borderRadius } from '@/styles';
+import { useClipboardStore } from '@/store/clipboardStore';
 
 interface BoletoCardProps {
   boleto: Boleto;
@@ -42,6 +43,7 @@ interface BoletoCardProps {
   onMarkPaid: () => void;
   onMarkPaidWithComprovante?: (boletoId: number, comprovanteUri: string) => void;
   onExpand?: () => void;
+  isLastCopied?: boolean;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -54,6 +56,7 @@ export default function BoletoCard({
   onMarkPaid,
   onMarkPaidWithComprovante,
   onExpand,
+  isLastCopied,
 }: BoletoCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -72,6 +75,8 @@ export default function BoletoCard({
     onEdit();
   };
 
+  const setLastCopiedBoleto = useClipboardStore((state) => state.setLastCopiedBoleto);
+
   const handleCopyBarcode = async () => {
     if (!boleto.codigoBarras) {
       Toast.show({
@@ -82,6 +87,7 @@ export default function BoletoCard({
       return;
     }
     await Clipboard.setStringAsync(boleto.codigoBarras);
+    setLastCopiedBoleto(boleto.id);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Toast.show({
       type: 'success',
@@ -154,10 +160,16 @@ export default function BoletoCard({
     <>
       <Swipeable renderRightActions={renderRightActions}>
         <TouchableOpacity
-          style={styles.card}
+          style={[styles.card, isLastCopied && styles.lastCopiedCard]}
           onPress={handleCardPress}
           activeOpacity={0.7}
         >
+          {isLastCopied && (
+            <View style={styles.lastCopiedTag}>
+              <CheckCircle2 size={12} color={colors.text.white} />
+              <Text style={styles.lastCopiedText}>Último copiado</Text>
+            </View>
+          )}
           {/* Top Row: Copy Button, Fornecedor and Status */}
           <View style={styles.topRow}>
             <TouchableOpacity
@@ -358,9 +370,8 @@ export default function BoletoCard({
       <ComprovantePreview
         visible={showComprovantePreview}
         imageUri={boleto.comprovanteUrl || ''}
-        boletoId={boleto.id}
+        // boletoId prop removed as it was not in the interface
         onClose={() => setShowComprovantePreview(false)}
-        onMarkPaid={onMarkPaidWithComprovante}
       />
     </>
   );
@@ -374,6 +385,30 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     marginHorizontal: spacing.lg,
     ...shadows.md,
+  },
+  lastCopiedCard: {
+    borderColor: colors.primary,
+    borderWidth: 2,
+  },
+  lastCopiedTag: {
+    position: 'absolute',
+    top: -4,
+    alignSelf: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    zIndex: 10,
+    ...shadows.sm,
+  },
+  lastCopiedText: {
+    color: colors.text.white,
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   topRow: {
     flexDirection: 'row',

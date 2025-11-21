@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +30,8 @@ import Animated, {
   Extrapolate,
   runOnJS,
 } from 'react-native-reanimated';
+import { useClipboardStore } from '@/store/clipboardStore';
+import Toast from 'react-native-toast-message';
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
@@ -54,6 +56,8 @@ export default function DashboardScreen() {
   const lastScrollY = useSharedValue(0);
   const isCollapsedShared = useSharedValue(false);
   const flatListRef = useRef<FlatList>(null);
+  const appState = useRef(AppState.currentState);
+  const { lastCopiedBoletoId, timestamp } = useClipboardStore();
 
   const filters = {
     status: statusFilter !== 'ALL' ? statusFilter : undefined,
@@ -66,6 +70,55 @@ export default function DashboardScreen() {
   };
 
   const { boletos, isLoading, refetch, markPaid, deleteBoleto, scanBoleto, createBoleto, updateBoleto } = useBoletos(filters);
+
+  const sortedBoletos = React.useMemo(() => {
+    if (!boletos) return [];
+    if (!lastCopiedBoletoId) return boletos;
+
+    const index = boletos.findIndex(b => b.id === lastCopiedBoletoId);
+    if (index === -1) return boletos;
+
+    const newBoletos = [...boletos];
+    const [item] = newBoletos.splice(index, 1);
+    newBoletos.unshift(item);
+    return newBoletos;
+  }, [boletos, lastCopiedBoletoId]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        checkLastCopiedBoleto();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [lastCopiedBoletoId, boletos]);
+
+  const checkLastCopiedBoleto = () => {
+    if (lastCopiedBoletoId && boletos) {
+      const boleto = boletos.find(b => b.id === lastCopiedBoletoId);
+      // Check if copied recently (e.g., within last 15 minutes)
+      const isRecent = timestamp && (Date.now() - timestamp < 15 * 60 * 1000);
+
+      if (boleto && boleto.status === 'PENDENTE' && isRecent) {
+        Toast.show({
+          type: 'info',
+          text1: 'Pagou o boleto?',
+          text2: `Toque para anexar o comprovante de ${boleto.fornecedor}`,
+          onPress: () => {
+            handleMarkPaid(boleto);
+          },
+          visibilityTime: 6000,
+        });
+      }
+    }
+  };
 
   const handleMarkPaid = (boleto: Boleto) => {
     setSelectedBoleto(boleto);
@@ -308,6 +361,7 @@ export default function DashboardScreen() {
       onDelete={() => handleDelete(item)}
       onMarkPaid={() => handleMarkPaid(item)}
       onMarkPaidWithComprovante={handleMarkPaidWithComprovante}
+      isLastCopied={item.id === lastCopiedBoletoId}
     />
   );
 
@@ -553,7 +607,7 @@ export default function DashboardScreen() {
       ) : (
         <FlatList
           ref={flatListRef}
-          data={boletos}
+          data={sortedBoletos}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{
