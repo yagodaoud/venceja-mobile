@@ -44,11 +44,11 @@ function MainTabs() {
           : {
             paddingBottom: Platform.OS === 'ios'
               ? Math.max(insets.bottom, 10)
-              : Math.max(insets.bottom - 10, 10),
+              : Math.max(insets.bottom, 10),
             paddingTop: 0,
             height: Platform.OS === 'ios'
-              ? 85 + Math.max(insets.bottom, 10)
-              : 70 + Math.max(insets.bottom - 10, 10),
+              ? 60 + Math.max(insets.bottom, 10)
+              : 60 + Math.max(insets.bottom, 10),
             justifyContent: 'flex-start',
           },
       }}

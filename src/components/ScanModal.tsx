@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, Image, ScrollView, TextInput as RNTextInput, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useCategories } from '@/hooks/useCategories';
@@ -48,6 +49,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, sca
   const { categories } = useCategories();
   const { setModalOpen } = useModalStore();
   const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Calculate scroll view height: screen height * 0.95 (95%) - header height (~80) - buttons height (~100) - padding
   const scrollViewHeight = screenHeight * 0.95 - 180;
@@ -94,7 +96,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, sca
     if (!data.vencimento) {
       return; // Should not happen due to validation, but TypeScript safety
     }
-    
+
     // If onSubmit prop is provided, use it (for custom handling in DashboardScreen)
     if (onSubmit) {
       onSubmit({
@@ -103,7 +105,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, sca
       } as any);
       return;
     }
-    
+
     // Otherwise, use the default behavior (create boleto)
     const valor = parseFloat(data.valor.replace(',', '.'));
     createBoleto(
@@ -439,7 +441,7 @@ export default function ScanModal({ visible, scannedBoleto, scannedImageUri, sca
             gap: spacing.md,
             paddingHorizontal: spacing.xl,
             paddingTop: spacing.lg,
-            paddingBottom: spacing.xl,
+            paddingBottom: spacing.xl + insets.bottom,
             borderTopWidth: 1,
             borderTopColor: colors.borderLight,
           }}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
@@ -10,7 +11,7 @@ import { format } from 'date-fns';
 import Toast from 'react-native-toast-message';
 import CategoryPicker from './CategoryPicker';
 import { useModalStore } from '@/store/modalStore';
-import { modalStyles, commonStyles, colors } from '@/styles';
+import { modalStyles, commonStyles, colors, spacing } from '@/styles';
 
 interface BoletoModalProps {
   boleto?: Boleto | null;
@@ -30,6 +31,7 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
   const { createBoleto, updateBoleto } = useBoletos();
   const { categories } = useCategories();
   const { setModalOpen } = useModalStore();
+  const insets = useSafeAreaInsets();
 
   const isEditMode = !!boleto;
 
@@ -198,7 +200,7 @@ export default function BoletoModal({ boleto, isOpen, onClose, onSuccess }: Bole
       statusBarTranslucent
     >
       <View style={modalStyles.overlay}>
-        <View style={modalStyles.modal}>
+        <View style={[modalStyles.modal, { paddingBottom: spacing.xl + insets.bottom }]}>
           <View style={modalStyles.header}>
             <Text style={modalStyles.title}>
               {isEditMode ? 'Editar Boleto' : 'Criar Boleto'}

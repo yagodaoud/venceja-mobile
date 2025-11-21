@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import { X, Camera, FileText } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useModalStore } from '@/store/modalStore';
 import { modalStyles, colors, spacing } from '@/styles';
 
@@ -13,6 +14,7 @@ interface AddBoletoModalProps {
 
 export default function AddBoletoModal({ visible, onClose, onScan, onCreateManual }: AddBoletoModalProps) {
   const { setModalOpen } = useModalStore();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     setModalOpen(visible);
@@ -28,7 +30,7 @@ export default function AddBoletoModal({ visible, onClose, onScan, onCreateManua
       statusBarTranslucent
     >
       <View style={modalStyles.overlay}>
-        <View style={[modalStyles.modal, { paddingBottom: spacing.xxxxl }]}>
+        <View style={[modalStyles.modal, { paddingBottom: spacing.xl + insets.bottom }]}>
           <View style={modalStyles.headerNoBorder}>
             <Text style={modalStyles.title}>Adicionar Boleto</Text>
             <TouchableOpacity onPress={onClose} style={modalStyles.closeButton}>

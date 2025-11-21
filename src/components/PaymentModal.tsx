@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, Image, ImageStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Boleto } from '@/types';
 import { useBoletos } from '@/hooks/useBoletos';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
   const { markPaid, isMarkingPaid } = useBoletos();
   const { setModalOpen } = useModalStore();
   const [comprovanteUri, setComprovanteUri] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     setModalOpen(visible);
@@ -91,7 +93,7 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
       statusBarTranslucent
     >
       <View style={modalStyles.overlay}>
-        <View style={modalStyles.modalFullScreen}>
+        <View style={[modalStyles.modalFullScreen, { paddingBottom: spacing.xl + insets.bottom }]}>
           <View style={modalStyles.headerNoBorder}>
             <Text style={modalStyles.title}>{t('markAsPaid')}</Text>
             <TouchableOpacity onPress={handleClose} style={modalStyles.closeButton}>
