@@ -5,12 +5,13 @@ import { BoletoStatus } from '@/types';
 import { modalStyles, commonStyles, colors, spacing } from '@/styles';
 
 interface StatusDropdownProps {
-  selectedStatus: BoletoStatus | 'ALL';
-  onStatusChange: (status: BoletoStatus | 'ALL') => void;
+  selectedStatus: BoletoStatus | 'ALL' | string;
+  onStatusChange: (status: BoletoStatus | 'ALL' | string) => void;
 }
 
-const statusOptions: Array<{ label: string; value: BoletoStatus | 'ALL' }> = [
+const statusOptions: Array<{ label: string; value: BoletoStatus | 'ALL' | string }> = [
   { label: 'Todos', value: 'ALL' },
+  { label: 'Pendente e Vencido', value: 'PENDENTE,VENCIDO' },
   { label: 'Pendente', value: 'PENDENTE' },
   { label: 'Vencido', value: 'VENCIDO' },
   { label: 'Pago', value: 'PAGO' },

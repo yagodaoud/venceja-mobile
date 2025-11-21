@@ -34,7 +34,7 @@ import Animated, {
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const [statusFilter, setStatusFilter] = useState<BoletoStatus | 'ALL'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<BoletoStatus | 'ALL' | string>('PENDENTE,VENCIDO');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(getCurrentMonthRange());
   const [selectedBoleto, setSelectedBoleto] = useState<Boleto | null>(null);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
@@ -60,7 +60,7 @@ export default function DashboardScreen() {
     dataInicio: dateRange?.from ? toDDMMYYYY(dateRange.from) : undefined,
     dataFim: dateRange?.to ? toDDMMYYYY(dateRange.to) : undefined,
     sortBy: 'vencimento',
-    direction: 'desc' as const,
+    direction: 'asc' as const,
     page: 0,
     size: 20,
   };
@@ -234,7 +234,6 @@ export default function DashboardScreen() {
       }
     );
   };
-
   const handleCreateManual = () => {
     setSelectedBoleto(null);
     setEditModalVisible(true);
@@ -286,7 +285,8 @@ export default function DashboardScreen() {
 
   const getStatusDisplayText = (): string => {
     if (statusFilter === 'ALL') return 'Todos';
-    return getStatusLabel(statusFilter);
+    if (statusFilter === 'PENDENTE,VENCIDO') return 'Pendente e Vencido';
+    return getStatusLabel(statusFilter as BoletoStatus);
   };
 
   const handleMarkPaidWithComprovante = (boletoId: number, comprovanteUri: string) => {

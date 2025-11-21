@@ -107,7 +107,7 @@ export interface UpdateCategoriaRequest {
 
 // Filter/Sort Types
 export interface BoletoFilters {
-  status?: BoletoStatus;
+  status?: BoletoStatus | string;
   dataInicio?: string; // DD/MM/YYYY
   dataFim?: string; // DD/MM/YYYY
   page?: number;
