@@ -61,7 +61,7 @@ export default function DashboardScreen() {
     return newBoletos;
   }, [boletos, lastCopiedBoletoId]);
 
-  const { sharedFileUri, clearSharedFile } = useShareIntentHandler({
+  const { sharedFileUri, targetBoleto, clearSharedFile } = useShareIntentHandler({
     lastCopiedBoletoId,
     boletos,
     onShareReceived: (boleto, fileUri) => {
@@ -181,17 +181,31 @@ export default function DashboardScreen() {
     filterProgress.value = withSpring(1, { damping: 20, stiffness: 200, mass: 0.3 });
   };
 
-  const renderItem = ({ item }: { item: Boleto }) => (
-    <BoletoCard
-      boleto={item}
-      onPress={() => handleEdit(item)}
-      onEdit={() => handleEdit(item)}
-      onDelete={() => handleDelete(item)}
-      onMarkPaid={() => handleMarkPaid(item)}
-      onMarkPaidWithComprovante={handleMarkPaidWithComprovante}
-      isLastCopied={item.id === lastCopiedBoletoId}
-    />
-  );
+  const renderItem = ({ item }: { item: Boleto }) => {
+    // Verifica se este é o boleto alvo do compartilhamento e se há um arquivo
+    const isTargetForShare = targetBoleto?.id === item.id && !!sharedFileUri;
+
+    return (
+      <BoletoCard
+        boleto={item}
+        onPress={() => {
+          // Se for o boleto alvo, abre o modal de pagamento (anexo) direto
+          if (isTargetForShare) {
+            setSelectedBoleto(item);
+            setPaymentModalVisible(true);
+          } else {
+            // Comportamento padrão (editar)
+            handleEdit(item);
+          }
+        }}
+        onEdit={() => handleEdit(item)}
+        onDelete={() => handleDelete(item)}
+        onMarkPaid={() => handleMarkPaid(item)}
+        onMarkPaidWithComprovante={handleMarkPaidWithComprovante}
+        isLastCopied={item.id === lastCopiedBoletoId}
+      />
+    );
+  };
 
   return (
     <SafeAreaView style={[commonStyles.screenContainer, { backgroundColor: '#FFFFFF' }]} edges={['top']}>

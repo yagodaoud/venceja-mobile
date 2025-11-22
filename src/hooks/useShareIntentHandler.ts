@@ -20,6 +20,7 @@ export function useShareIntentHandler({
   });
   
   const [sharedFileUri, setSharedFileUri] = useState<string | null>(null);
+  const [targetBoleto, setTargetBoleto] = useState<Boleto | null>(null);
   const processedIntentRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -88,10 +89,11 @@ export function useShareIntentHandler({
           const boleto = boletos.find(b => b.id === lastCopiedBoletoId);
 
           if (boleto && (boleto.status === 'PENDENTE' || boleto.status === 'VENCIDO')) {
+            setTargetBoleto(boleto);
             Toast.show({
               type: 'success',
               text1: 'Comprovante recebido!',
-              text2: `Toque para anexar ao boleto de ${boleto.fornecedor}`,
+              text2: `Toque aqui ou no boleto para anexar`,
               onPress: () => {
                 onShareReceived(boleto, destUri);
                 Toast.hide();
@@ -152,11 +154,13 @@ export function useShareIntentHandler({
       }
     }
     setSharedFileUri(null);
+    setTargetBoleto(null);
     processedIntentRef.current = null;
   };
 
   return {
     sharedFileUri,
+    targetBoleto,
     clearSharedFile,
   };
 }
