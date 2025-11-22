@@ -15,9 +15,10 @@ interface PaymentModalProps {
   visible: boolean;
   boleto: Boleto | null;
   onClose: () => void;
+  initialComprovanteUri?: string | null;
 }
 
-export default function PaymentModal({ visible, boleto, onClose }: PaymentModalProps) {
+export default function PaymentModal({ visible, boleto, onClose, initialComprovanteUri }: PaymentModalProps) {
   const { t } = useTranslation();
   const { markPaid, isMarkingPaid } = useBoletos();
   const { setModalOpen } = useModalStore();
@@ -26,7 +27,12 @@ export default function PaymentModal({ visible, boleto, onClose }: PaymentModalP
 
   useEffect(() => {
     setModalOpen(visible);
-  }, [visible, setModalOpen]);
+    if (visible && initialComprovanteUri) {
+      setComprovanteUri(initialComprovanteUri);
+    } else if (visible && !initialComprovanteUri) {
+      setComprovanteUri(null);
+    }
+  }, [visible, setModalOpen, initialComprovanteUri]);
 
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();

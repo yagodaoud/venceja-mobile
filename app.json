@@ -54,11 +54,49 @@
           "color": "#A7B758",
           "sounds": []
         }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "android": {
+            "intentFilters": [
+              {
+                "action": "android.intent.action.SEND",
+                "data": {
+                  "mimeType": "image/*"
+                }
+              },
+              {
+                "action": "android.intent.action.SEND",
+                "data": {
+                  "mimeType": "application/pdf"
+                }
+              },
+              {
+                "action": "android.intent.action.SEND",
+                "data": {
+                  "mimeType": "image/jpeg"
+                }
+              },
+              {
+                "action": "android.intent.action.SEND",
+                "data": {
+                  "mimeType": "image/png"
+                }
+              }
+            ]
+          },
+          "ios": {
+            "activationRules": {
+              "NSExtensionActivationSupportsImageWithMaxCount": 1,
+              "NSExtensionActivationSupportsFileWithMaxCount": 1
+            }
+          }
+        }
       ]
     ],
     "extra": {
       "apiUrl": "https://venceja-core-production.up.railway.app/api/v1"
-      // "apiUrl": "http://192.168.3.4:8080/api/v1"
     }
   }
 }
