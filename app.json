@@ -71,18 +71,6 @@
                 "data": {
                   "mimeType": "application/pdf"
                 }
-              },
-              {
-                "action": "android.intent.action.SEND",
-                "data": {
-                  "mimeType": "image/jpeg"
-                }
-              },
-              {
-                "action": "android.intent.action.SEND",
-                "data": {
-                  "mimeType": "image/png"
-                }
               }
             ]
           },
