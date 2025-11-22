@@ -87,7 +87,7 @@ export function useShareIntentHandler({
         if (lastCopiedBoletoId && boletos) {
           const boleto = boletos.find(b => b.id === lastCopiedBoletoId);
 
-          if (boleto && boleto.status === 'PENDENTE') {
+          if (boleto && (boleto.status === 'PENDENTE' || boleto.status === 'VENCIDO')) {
             Toast.show({
               type: 'success',
               text1: 'Comprovante recebido!',
@@ -99,7 +99,7 @@ export function useShareIntentHandler({
               visibilityTime: 15000,
               autoHide: true,
             });
-          } else if (boleto && boleto.status !== 'PENDENTE') {
+          } else if (boleto && boleto.status !== 'PAGO') {
             Toast.show({
               type: 'info',
               text1: 'Boleto já pago',
